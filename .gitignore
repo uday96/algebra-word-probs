@@ -1,0 +1,13 @@
+*.floo*
+
+*.pyc
+
+doubts.txt
+
+__pycache__/
+
+neuralcoref/
+word-probs/
+stanford-corenlp-full-2018-02-27/
+
+stanford-corenlp-full-2018-02-27.zip
