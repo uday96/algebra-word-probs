@@ -186,19 +186,27 @@ def process_bare_num(numbers,sentences,numt,et,vt,h):
 		else:
 			print("No entity found for bare number: "+str(num[0]))
 
-def get_attributes(et,ex,nlp):
+def get_attributes(et,ex,dep_parser):
 	print("identifying ats...")
 	at = []
 	last_at = "$"
 	for e in et+[ex]:
-		d = nlp(e[0])
+		result = dep_parser.raw_parse(str(e[0]))
 		flag = False
-		for token in d[0]:
-			if 'JJ' in token.pos and str(token) != "many":
-				flag = True
-				at.append([str(token),e[1],e[2]])
-				last_at = str(token)
-				break
+		dep_tup = None
+		for parse in result:
+			for dep in list(parse.triples()):
+				if dep[1] == "amod" and dep[0][0]==e[1] and dep[2][0] != "many":
+					flag = True
+					at.append([str(dep[2][0]),e[1],e[2]])
+					last_at = str(dep[2][0])
+					break
+				elif dep[1] == "dep" and dep[2][0]==e[1] and dep[0][0] != "many":
+					dep_tup = dep
+		if not flag and dep_tup:
+			flag = True
+			at.append([str(dep_tup[0][0]),e[1],e[2]])
+			last_at = str(dep_tup[0][0])
 		if not flag:
 			print("No attribute found for entity: "+str(e[1]))
 			at.append([last_at,e[1],e[2]])
@@ -479,7 +487,7 @@ def word_prob_solver(text):
 	variable = "$"
 	numt,variable = get_numt(et,numbers,variable)
 	process_bare_num(numbers,sentences,numt,et,vt,h)
-	at,ax = get_attributes(et,ex,nlp)
+	at,ax = get_attributes(et,ex,dep_parser)
 	fragments = get_fragments(et,numt,vt,at,ex,vx,ax)
 	assert len(fragments) == len(sentences)
 	ct = get_containers(fragments,dep_parser,nlp)
@@ -500,12 +508,12 @@ def word_prob_solver(text):
 
 if __name__ == "__main__":
 	text = 'Joan found 70 seashells on the beach . she gave some of her seashells to Sam. She has 27 seashell . How many seashells did she give to Sam ?'
-	# text = 'Liz had 9 black kittens. She gave some of her kittens to Joan. Joan has now 11 kittens. Liz has 5 kitten left and 3 has spots. How many kittens did Joan get?'
-	# text = 'Liz had 9 black kittens. She gave some of her kittens to Joan. Joan has now 11 kittens. Liz has 5 kittens left and 3 has spots. How many kittens did Liz give?'
-	# text = 'Jason found 49 seashells and 48 starfish on the beach . He gave 13 of the seashells to Tim . How many seashells does Jason now have ? '
+	text = 'Liz had 9 black kittens. She gave some of her kittens to Joan. Joan has now 11 kittens. Liz has 5 kitten left and 3 has spots. How many kittens did Joan get?'
+	text = 'Liz had 9 black kittens. She gave some of her kittens to Joan. Joan has now 11 kittens. Liz has 5 kittens left and 3 has spots. How many kittens did Liz give?'
+	text = 'Jason found 49 seashells and 48 starfish on the beach . He gave 13 of the seashells to Tim . How many seashells does Jason now have ? '
 	# TODO
-	# text = 'Sara has 31 red and 15 green balloons . Sandy has 24 red balloons . How many red balloons do they have in total ? '
 	text = 'There are 42 walnut trees and 12 orange trees currently in the park. Park workers cut down 13 walnut trees that were damaged. How many walnut trees will be in the park when the workers are finished?'
+	# text = 'Sara has 31 red and 15 green balloons . Sandy has 24 red balloons . How many red balloons do they have in total ? '
 	# text = 'Joan went to 4 football games this year. She went to 9 games last year. How many football games did Joan go?'
 	# TODO - coref prob
 	# text = 'There were 28 bales of hay in the barn . Tim stacked bales in the barn today . There are now 54 bales of hay in the barn . How many bales did he store in the barn ? '

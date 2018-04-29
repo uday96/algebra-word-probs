@@ -2,6 +2,8 @@
 
 *.pyc
 
+test.py
+
 doubts.txt
 
 __pycache__/
