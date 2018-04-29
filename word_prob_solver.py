@@ -254,7 +254,7 @@ def verb_category(verb,nlp):
 	verb = verb.lower().strip()
 	dv = nlp(verb)
 	verb_lem = dv[0][0].lemma
-	OBS_verbs = ["have","find"]
+	OBS_verbs = ["have","find","are","be"]
 	NEG_TR_verbs = ["give"]
 	POS_TR_verbs = ["get"]
 	if verb_lem in OBS_verbs:
@@ -457,11 +457,24 @@ def word_prob_solver(text):
 	text = preprocess_text(text)
 	print(text)
 	document = nlp(text)
-	document2 = spacy_parser(text)
-	sentences,numbers = get_numbers(document)
 	h = get_num_dep_nouns(document,dep_parser)
+	h_lem = set([])
+	is_h_lemmatized = False
+	for h_noun in h:
+		dh = nlp(h_noun)
+		h_noun_lem = dh[0][0].lemma
+		if h_noun_lem != h_noun:
+			text = text.replace(h_noun,h_noun_lem)
+			is_h_lemmatized = True
+		h_lem.update([h_noun_lem])
+	h = list(h_lem)
+	if is_h_lemmatized:
+		document = nlp(text)
+		print(text)
+	sentences,numbers = get_numbers(document)
 	NPs,et = get_noun_phrases_entities(h,sentences,tree_parser)
 	vt = get_verbs(et,spacy_parser)
+	document2 = spacy_parser(text)
 	ex,vx = get_ex_vx(document2,sentences,h)
 	variable = "$"
 	numt,variable = get_numt(et,numbers,variable)
@@ -477,8 +490,6 @@ def word_prob_solver(text):
 	verb_cats = []
 	for fragment in fragments:
 		verb_cats.append(verb_category(fragment[4],nlp))
-	# verb_cats = ["OBS","NEG_TR","OBS","OBS","$"]
-	# verb_cats = ["OBS","NEG_TR","OBS"]
 	states = get_states(fragments,verb_cats,ex,ax)
 	equations = build_equations(states)
 	solutions = solve_equations(equations)
@@ -488,13 +499,14 @@ def word_prob_solver(text):
 	print("Ans: ",answer,"\n")
 
 if __name__ == "__main__":
-	text = 'Joan found 70 seashells on the beach . she gave some of her seashells to Sam. She has 27 seashells . How many seashells did she give to Sam ?'
-	# text = 'Liz had 9 black kittens. She gave some of her kittens to Joan. Joan has now 11 kittens. Liz has 5 kittens left and 3 has spots. How many kittens did Joan get?'
+	text = 'Joan found 70 seashells on the beach . she gave some of her seashells to Sam. She has 27 seashell . How many seashells did she give to Sam ?'
+	# text = 'Liz had 9 black kittens. She gave some of her kittens to Joan. Joan has now 11 kittens. Liz has 5 kitten left and 3 has spots. How many kittens did Joan get?'
 	# text = 'Liz had 9 black kittens. She gave some of her kittens to Joan. Joan has now 11 kittens. Liz has 5 kittens left and 3 has spots. How many kittens did Liz give?'
-	text = 'Jason found 49 seashells and 48 starfish on the beach . He gave 13 of the seashells to Tim . How many seashells does Jason now have ? '
+	# text = 'Jason found 49 seashells and 48 starfish on the beach . He gave 13 of the seashells to Tim . How many seashells does Jason now have ? '
 	# TODO
 	# text = 'Sara has 31 red and 15 green balloons . Sandy has 24 red balloons . How many red balloons do they have in total ? '
-	# text = 'There are 42 walnut trees and 12 orange trees currently in the park. Park workers cut down 13 walnut trees that were damaged. How many walnut trees will be in the park when the workers are finished?'
+	text = 'There are 42 walnut trees and 12 orange trees currently in the park. Park workers cut down 13 walnut trees that were damaged. How many walnut trees will be in the park when the workers are finished?'
 	# text = 'Joan went to 4 football games this year. She went to 9 games last year. How many football games did Joan go?'
+	# TODO - coref prob
 	# text = 'There were 28 bales of hay in the barn . Tim stacked bales in the barn today . There are now 54 bales of hay in the barn . How many bales did he store in the barn ? '
 	word_prob_solver(text)
