@@ -216,7 +216,7 @@ def get_fragments(et,numt,vt,at,ex,vx,ax):
 	fragments.append([ex[2],ex[1],ex[0],"$",vx[0],ax[0]])
 	return fragments
 
-def get_containers(fragments,dep_parser):
+def get_containers(fragments,dep_parser,nlp):
 	print("identifying ct...")
 	ct=[]
 	last_ct="$"
@@ -242,6 +242,9 @@ def get_containers(fragments,dep_parser):
 			ct1 = last_ct
 		if ct2 == "$":
 			ct2 = last_ct
+		dct = nlp(ct1+" "+ct2)
+		ct1 = dct[0][0].lemma.lower()
+		ct2 = dct[0][1].lemma.lower()
 		ct.append([ct1,ct2,fragment[0]])
 		fragment.append([ct1,ct2])
 	return ct
@@ -466,7 +469,7 @@ def word_prob_solver(text):
 	at,ax = get_attributes(et,ex,nlp)
 	fragments = get_fragments(et,numt,vt,at,ex,vx,ax)
 	assert len(fragments) == len(sentences)
-	ct = get_containers(fragments,dep_parser)
+	ct = get_containers(fragments,dep_parser,nlp)
 	for fragment in fragments:
 		print(fragment,"\n")
 	fragx = fragments[-1]
@@ -486,9 +489,9 @@ def word_prob_solver(text):
 
 if __name__ == "__main__":
 	text = 'Joan found 70 seashells on the beach . she gave some of her seashells to Sam. She has 27 seashells . How many seashells did she give to Sam ?'
-	text = 'Liz had 9 black kittens. She gave some of her kittens to Joan. Joan has now 11 kittens. Liz has 5 kittens left and 3 has spots. How many kittens did Joan get?'
-	text = 'Liz had 9 black kittens. She gave some of her kittens to Joan. Joan has now 11 kittens. Liz has 5 kittens left and 3 has spots. How many kittens did Liz give?'
-	# text = 'Jason found 49 seashells and 48 starfish on the beach . He gave 13 of the seashells to Tim . How many seashells does Jason now have ? '
+	# text = 'Liz had 9 black kittens. She gave some of her kittens to Joan. Joan has now 11 kittens. Liz has 5 kittens left and 3 has spots. How many kittens did Joan get?'
+	# text = 'Liz had 9 black kittens. She gave some of her kittens to Joan. Joan has now 11 kittens. Liz has 5 kittens left and 3 has spots. How many kittens did Liz give?'
+	text = 'Jason found 49 seashells and 48 starfish on the beach . He gave 13 of the seashells to Tim . How many seashells does Jason now have ? '
 	# TODO
 	# text = 'Sara has 31 red and 15 green balloons . Sandy has 24 red balloons . How many red balloons do they have in total ? '
 	# text = 'There are 42 walnut trees and 12 orange trees currently in the park. Park workers cut down 13 walnut trees that were damaged. How many walnut trees will be in the park when the workers are finished?'
