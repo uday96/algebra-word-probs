@@ -92,7 +92,7 @@ def get_ex_vx(document2,sentences,h):
 			vx = [x.text,np.root.text]
 	return ex,vx
 
-def get_numt(et,numbers):
+def get_numt(et,numbers,variable):
 	print("identifying numt...")
 	numt = []
 	for chunk in et:
@@ -104,8 +104,9 @@ def get_numt(et,numbers):
 				numbers.remove(num)
 				break
 		if not flag:
-			numt.append(['$',chunk[1],chunk[2]])
-	return numt
+			numt.append([variable,chunk[1],chunk[2]])
+			variable += "$"
+	return numt,variable
 
 def process_bare_num(numbers,sentences,numt,et,vt,h):
 	if len(numbers)==0:
@@ -174,7 +175,7 @@ def process_bare_num(numbers,sentences,numt,et,vt,h):
 			print([num[0],h_noun_num])
 			update_existing_numt = False
 			for enum in numt:
-				if(enum[0] == "$" and enum[1] == h_noun_num and enum[2] == num[1]):
+				if("$" in enum[0] and enum[1] == h_noun_num and enum[2] == num[1]):
 					update_existing_numt = True
 					enum[0] = num[0]
 					break
@@ -246,18 +247,25 @@ def get_containers(fragments,dep_parser):
 	return ct
 
 #Sentence Verb Categorization
-def verb_category(verb):
-	verb = verb.lower()
-	OBS_verbs = ["has","had","found"]
-	NEG_TR_verbs = ["give","gave"]
-	if verb in OBS_verbs:
+def verb_category(verb,nlp):
+	verb = verb.lower().strip()
+	dv = nlp(verb)
+	verb_lem = dv[0][0].lemma
+	OBS_verbs = ["have","find"]
+	NEG_TR_verbs = ["give"]
+	POS_TR_verbs = ["get"]
+	if verb_lem in OBS_verbs:
 		return "OBS"
-	elif verb in NEG_TR_verbs:
+	elif verb_lem in NEG_TR_verbs:
 		return "NEG_TR"
+	elif verb_lem in POS_TR_verbs:
+		return "POS_TR"
 
 def get_states(fragments,verb_cats,ex,ax):
 	#State Progression
-	states=[]
+	print("building states...")
+	states = []
+	initialiser = "J0"
 	for fragment,vcat in zip(fragments,verb_cats):
 		state={}
 		if len(states) > 0:
@@ -265,19 +273,35 @@ def get_states(fragments,verb_cats,ex,ax):
 		if fragment[1] == ex[1] and fragment[5] == ax[0]:
 			if vcat == "OBS":
 				if fragment[6][0].lower() not in state:
-					state[fragment[6][0].lower()] = {"N":fragment[3],"E":fragment[1],"A":fragment[5]}
+					state[fragment[6][0].lower()] = [{"N":fragment[3],"E":fragment[1],"A":fragment[5]}]
 				else:
-					state[fragment[6][0].lower()]["N"] = fragment[3]
+					ct_state_ets = state[fragment[6][0].lower()]
+					for ct_et in ct_state_ets:
+						if ct_et["E"] == fragment[1] and ct_et["A"] == fragment[5]:
+							ct_et["N"] = fragment[3]
+							break
 			elif vcat == "NEG_TR":
 				if fragment[6][0].lower() not in state:
-					state[fragment[6][0].lower()] = {"N":"J0-"+fragment[3],"E":fragment[1],"A":fragment[5]}
+					state[fragment[6][0].lower()] = [{"N":initialiser+"-"+fragment[3],"E":fragment[1],"A":fragment[5]}]
+					initialiser += "0"
 				else:
-					state[fragment[6][0].lower()]["N"] += "-"+fragment[3]
+					ct_state_ets = state[fragment[6][0].lower()]
+					for ct_et in ct_state_ets:
+						if ct_et["E"] == fragment[1] and ct_et["A"] == fragment[5]:
+							ct_et["N"] += "-"+fragment[3]
+							break
 				if fragment[6][1].lower() not in state:
-					state[fragment[6][1].lower()] = {"N":"J0+"+fragment[3],"E":fragment[1],"A":fragment[5]}
+					state[fragment[6][1].lower()] = [{"N":initialiser+"+"+fragment[3],"E":fragment[1],"A":fragment[5]}]
+					initialiser += "0"
 				else:
-					state[fragment[6][1].lower()]["N"] += "+"+fragment[3]
+					ct_state_ets = state[fragment[6][0].lower()]
+					for ct_et in ct_state_ets:
+						if ct_et["E"] == fragment[1] and ct_et["A"] == fragment[5]:
+							ct_et["N"] += "+"+fragment[3]
+							break
 		states.append(state)
+	for state in states:
+		print(state,"\n")
 	return states
 
 def init_parsers():
@@ -292,8 +316,141 @@ def init_parsers():
 	nlp = StanfordCoreNLP(annotators=annotators, options=options)
 	return nlp,spacy_parser,dep_parser,tree_parser
 
+def build_equations(states):
+	print("building equations...")
+	eq_subs = {}
+	equations = []
+	for state in states:
+		for ct in state:
+			ct_state_ets = state[ct]
+			for ct_et in ct_state_ets:
+				eq_subs_str = ct+"_"+ct_et["E"]+"_"+ct_et["A"]
+				if eq_subs_str not in eq_subs:
+					eq_subs[eq_subs_str] = [ct_et["N"]]
+				else:
+					eq_subs[eq_subs_str].append(ct_et["N"])
+	for eq in eq_subs:
+		print(eq," : ",eq_subs[eq])
+		for eqi in range(len(eq_subs[eq])):
+			if eqi+1 < len(eq_subs[eq]):
+				if "$" in eq_subs[eq][eqi] and "$" not in eq_subs[eq][eqi+1]:
+					equation = eq_subs[eq][eqi]+"="+eq_subs[eq][eqi+1]
+					equations.append(equation)
+					print(equation)
+	return equations
+
+def check_int(s):
+	s = s.strip()
+	if s[0] in ['-', '+']:
+		return s[1:].isdigit()
+	return s.isdigit()
+
+def solve_equations(equations):
+	# assuming lhs always has variable and rhs has int
+	print("solving equations...")
+	solutions = {}
+	for eq in equations:
+		parts = eq.split("=")
+		if "+" in parts[0]:
+			lhs = parts[0].strip().split("+")
+			if "$" in lhs[0] and check_int(lhs[1]) and check_int(parts[1]):
+				solutions[lhs[0]] = str(int(parts[1].strip()) -  int(lhs[1].strip()))
+			elif "$" in lhs[1] and check_int(lhs[0]) and check_int(parts[1]):
+				solutions[lhs[1]] = str(int(parts[1].strip()) -  int(lhs[0].strip()))
+		elif "-" in parts[0]:
+			lhs = parts[0].strip().split("-")
+			if "$" in lhs[0] and check_int(lhs[1]) and check_int(parts[1]):
+				solutions[lhs[0]] = str(int(parts[1].strip()) +  int(lhs[1].strip()))
+			elif "$" in lhs[1] and check_int(lhs[0]) and check_int(parts[1]):
+				solutions[lhs[1]] = str(int(lhs[0].strip()) -  int(parts[1].strip()))
+	print(solutions)
+	print(equations,"\n")
+	for eq in equations:
+		for sol in solutions:
+			if sol in eq:
+				eq = eq.replace(sol,solutions[sol])
+		print(eq)
+		parts = eq.split("=")
+		if "+" in parts[0]:
+			lhs = parts[0].strip().split("+")
+			if "J0" in lhs[0] and check_int(lhs[1]) and check_int(parts[1]):
+				solutions[lhs[0]] = str(int(parts[1].strip()) -  int(lhs[1].strip()))
+			elif "J0" in lhs[1] and check_int(lhs[0]) and check_int(parts[1]):
+				solutions[lhs[1]] = str(int(parts[1].strip()) -  int(lhs[0].strip()))
+		elif "-" in parts[0]:
+			lhs = parts[0].strip().split("-")
+			if "J0" in lhs[0] and check_int(lhs[1]) and check_int(parts[1]):
+				solutions[lhs[0]] = str(int(parts[1].strip()) +  int(lhs[1].strip()))
+			elif "J0" in lhs[1] and check_int(lhs[0]) and check_int(parts[1]):
+				solutions[lhs[1]] = str(int(lhs[0].strip()) -  int(parts[1].strip()))
+	print(solutions,"\n")
+	return solutions
+
+def bool_opposite_verbs(v1_cat,v2_cat):
+	if v1_cat is None or v2_cat is None:
+		return False
+	if "NEG" in v1_cat and "POS" in v2_cat:
+		return True
+	elif "POS" in v1_cat and "NEG" in v2_cat:
+		return True
+	return False
+
+def get_answer(solutions,states,fragments,fragx,nlp):
+	print("getting answer...")
+	ctx1,ctx2 = fragx[6]
+	ex = fragx[1]
+	ax = fragx[5]
+	vx = fragx[4]
+	dvx = nlp(vx)
+	vx_lem = dvx[0][0].lemma
+	vx_cat = verb_category(vx,nlp)
+	ans = None
+	if vx_cat == "OBS" and ctx1.lower() in states[-1]:
+		for state in states[-1][ctx1.lower()]:
+			if state["E"] == ex and state["A"] == ax:
+				ans = state["N"]
+	elif vx_cat == "NEG_TR" or vx_cat == "POS_TR":
+		for fragment in fragments:
+			vt = fragment[4]
+			dvt = nlp(vt)
+			vt_lem = dvt[0][0].lemma
+			if ctx1 != ctx2:
+				if ctx1 == fragment[6][0] and ctx2 == fragment[6][1] and vx_lem == vt_lem and ex == fragment[1] and ax == fragment[5]:
+					ans = fragment[3]
+			else:
+				if ctx1 == fragment[6][0] and vx_lem == vt_lem and ex == fragment[1] and ax == fragment[5]:
+					ans = fragment[3]
+	if not ans:
+		for fragment in fragments:
+			vt = fragment[4]
+			dvt = nlp(vt)
+			vt_lem = dvt[0][0].lemma
+			vt_cat = verb_category(vt,nlp)
+			if vt_cat is None:
+				continue
+			opposite_verbs = bool_opposite_verbs(vx_cat,vt_cat)
+			if opposite_verbs:
+				if ctx1 != ctx2:
+					if ctx1 == fragment[6][1] and ctx2 == fragment[6][0] and ex == fragment[1] and ax == fragment[5]:
+						ans = fragment[3]
+				else:
+					if ctx1 == fragment[6][1] and ex == fragment[1] and ax == fragment[5]:
+						ans = fragment[3]
+	if ans:
+		for sol in solutions:
+			if sol in ans:
+				ans = ans.replace(sol,solutions[sol])
+		ans = ans.strip()
+		if "-" in ans:
+			parts = ans.split("-")
+			if len(parts)==2 and check_int(parts[0]) and check_int(parts[1]):
+				ans = str(int(parts[0]) - int(parts[1]))
+	print("Ans: ",ans)
+	return ans
+
 def word_prob_solver(text):
-	nlp,spacy_parser,dep_parser,tree_parser = init_parsers()	
+	orig_text = text
+	nlp,spacy_parser,dep_parser,tree_parser = init_parsers()
 	text = preprocess_text(text)
 	print(text)
 	document = nlp(text)
@@ -303,7 +460,8 @@ def word_prob_solver(text):
 	NPs,et = get_noun_phrases_entities(h,sentences,tree_parser)
 	vt = get_verbs(et,spacy_parser)
 	ex,vx = get_ex_vx(document2,sentences,h)
-	numt = get_numt(et,numbers)
+	variable = "$"
+	numt,variable = get_numt(et,numbers,variable)
 	process_bare_num(numbers,sentences,numt,et,vt,h)
 	at,ax = get_attributes(et,ex,nlp)
 	fragments = get_fragments(et,numt,vt,at,ex,vx,ax)
@@ -315,16 +473,21 @@ def word_prob_solver(text):
 	del fragments[-1]
 	verb_cats = []
 	for fragment in fragments:
-		verb_cats.append(verb_category(fragment[4]))
+		verb_cats.append(verb_category(fragment[4],nlp))
 	# verb_cats = ["OBS","NEG_TR","OBS","OBS","$"]
 	# verb_cats = ["OBS","NEG_TR","OBS"]
 	states = get_states(fragments,verb_cats,ex,ax)
-	for state in states:
-		print(state,"\n")
+	equations = build_equations(states)
+	solutions = solve_equations(equations)
+	answer = get_answer(solutions,states,fragments,fragx,nlp)
+	print("\n","---------------------------","\n")
+	print("Que: ",orig_text,"\n")
+	print("Ans: ",answer,"\n")
 
 if __name__ == "__main__":
-	# text = 'Joan found 70 seashells on the beach . she gave Sam some of her seashells . She has 27 seashells . How many seashells did she give to Sam ?'
+	text = 'Joan found 70 seashells on the beach . she gave some of her seashells to Sam. She has 27 seashells . How many seashells did she give to Sam ?'
 	text = 'Liz had 9 black kittens. She gave some of her kittens to Joan. Joan has now 11 kittens. Liz has 5 kittens left and 3 has spots. How many kittens did Joan get?'
+	text = 'Liz had 9 black kittens. She gave some of her kittens to Joan. Joan has now 11 kittens. Liz has 5 kittens left and 3 has spots. How many kittens did Liz give?'
 	# text = 'Jason found 49 seashells and 48 starfish on the beach . He gave 13 of the seashells to Tim . How many seashells does Jason now have ? '
 	# TODO
 	# text = 'Sara has 31 red and 15 green balloons . Sandy has 24 red balloons . How many red balloons do they have in total ? '
