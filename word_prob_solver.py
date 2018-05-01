@@ -102,6 +102,8 @@ def get_verbs(et,dep_parser,nlp):
 			verb_set.remove("did")
 		if len(verb_set) > 1 and "does" in verb_set:
 			verb_set.remove("does")
+		if len(verb_set) > 1 and "do" in verb_set:
+			verb_set.remove("do")
 		nearest_verb = get_nearest_verb(verb_set,entity)
 		vt.append([nearest_verb,entity[1],entity[2]])
 	return vt
@@ -114,9 +116,11 @@ def get_ex(document2,sentences,h):
 			ex = [np.text,np.root.text,sentences[-1]]
 	return ex
 
-def get_numt(et,numbers,variable):
+def get_numt(et,numbers):
 	print("identifying numt...")
 	numt = []
+	variable_dcount = 0
+	variable = "$"+str(variable_dcount)
 	for chunk in et:
 		flag = False
 		for num in numbers:
@@ -127,8 +131,9 @@ def get_numt(et,numbers,variable):
 				break
 		if not flag:
 			numt.append([variable,chunk[1],chunk[2]])
-			variable += "$"
-	return numt,variable
+			variable_dcount += 1
+			variable = "$"+str(variable_dcount)
+	return numt
 
 def process_bare_num(numbers,sentences,numt,et,vt,h):
 	if len(numbers)==0:
@@ -311,7 +316,7 @@ def verb_category(verb,nlp):
 	dv = nlp(verb)
 	verb_lem = dv[0][0].lemma
 	OBS_verbs = ["have","find","are","be"]
-	POS_verbs = ["go"]
+	POS_verbs = ["go","pick"]
 	NEG_TR_verbs = ["give"]
 	POS_TR_verbs = ["get"]
 	DESTROY_verbs = ["cut"]
@@ -597,8 +602,7 @@ def word_prob_solver(text):
 	vt = get_verbs(et+[ex],dep_parser,nlp)
 	vx = vt[-1]
 	del vt[-1]
-	variable = "$"
-	numt,variable = get_numt(et,numbers,variable)
+	numt = get_numt(et,numbers)
 	process_bare_num(numbers,sentences,numt,et,vt,h)
 	at,ax = get_attributes(et,ex,dep_parser)
 	fragments = get_fragments(et,numt,vt,at,ex,vx,ax,sentences)
@@ -627,9 +631,12 @@ if __name__ == "__main__":
 	text = 'There are 22 walnut trees currently in the park . Park workers will plant walnut trees today . When the workers are finished there will be 55 walnut trees in the park . How many walnut trees did the workers plant today ?'
 	text = 'Jason found 49 seashells and 48 starfish on the beach . He gave 13 of the seashells to Tim . How many seashells does Jason now have ? '
 	text = 'Joan went to 4 football games this year. She went to 9 games last year. How many football games did Joan go?'
+	text = "Mike had 34 peaches at his roadside fruit dish . He went to the orchard and picked peaches to stock up . There are now 86 peaches . how many did he pick ? "
 	# TODO
 	# text = 'Mary is baking a cake . The recipe wants 8 cups of flour . She already put in 2 cups . How many cups does she need to add ? '
 	# text = 'Sara has 31 red and 15 green balloons . Sandy has 24 red balloons . How many red balloons do they have in total ? '
 	# TODO - coref prob
+	# text = "Tom has 9 yellow balloons and Sara has 8 yellow balloons . How many yellow balloons do they have in total ? "
 	# text = 'There were 28 bales of hay in the barn . Tim stacked bales in the barn today . There are now 54 bales of hay in the barn . How many bales did he store in the barn ? '
+	# text = "Sara 's high school played 12 basketball games this year . The team won most of their games . They were defeated during 4 games . How many games did they win ? "
 	word_prob_solver(text)
