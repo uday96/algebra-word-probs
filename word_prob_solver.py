@@ -228,15 +228,32 @@ def get_containers(fragments,dep_parser,nlp):
 	print("identifying ct...")
 	ct=[]
 	last_ct="$"
+	is_loc_related = False
 	for fragment in fragments:
 		result = dep_parser.raw_parse(fragment[0])
 		ct1="$"
 		ct2="$"
+		bool_there_is = False
+		if "there is" in fragment[0].lower() or "there are" in fragment[0].lower():
+			bool_there_is = True
 		for parse in result:
 			for dep in list(parse.triples()):
-				if dep[1] == "nsubj" and dep[0][0] == fragment[4]:
+				if dep[1] == "nsubj" and dep[0][0] == fragment[4] and not bool_there_is:
 					if ct1 == "$":
 						ct1 = dep[2][0]
+						last_ct = ct1
+				elif dep[1] == "case" and dep[2][0] == "in" and bool_there_is:
+					if ct1 == "$":
+						ct1 = dep[0][0]
+						last_ct = ct1
+						is_loc_related = True
+				elif dep[1] == "case" and dep[2][0] == "in" and is_loc_related and "how many" in fragment[0].lower():
+					if ct1 == "$":
+						ct1 = dep[0][0]
+						last_ct = ct1
+				elif dep[1] == "compound" and dep[0][0] == ct1:
+					if ct2 == "$":
+						ct2 = dep[2][0]
 						last_ct = ct1
 				elif dep[1] == "iobj" and dep[0][0] == fragment[4]:
 					if ct2 == "$":
@@ -246,6 +263,10 @@ def get_containers(fragments,dep_parser,nlp):
 					if ct2 == "$":
 						ct2 = dep[2][0]
 						last_ct = ct1
+				elif dep[1] == "nsubjpass" and is_loc_related and "how many" in fragment[0].lower():
+					if ct2 == "$":
+						ct2 = dep[2][0]
+						last_ct = ct2
 		if ct1 == "$":
 			ct1 = last_ct
 		if ct2 == "$":
@@ -265,12 +286,15 @@ def verb_category(verb,nlp):
 	OBS_verbs = ["have","find","are","be"]
 	NEG_TR_verbs = ["give"]
 	POS_TR_verbs = ["get"]
+	DESTROY_verbs = ["cut"]
 	if verb_lem in OBS_verbs:
 		return "OBS"
 	elif verb_lem in NEG_TR_verbs:
 		return "NEG_TR"
 	elif verb_lem in POS_TR_verbs:
 		return "POS_TR"
+	elif verb_lem in DESTROY_verbs:
+		return "DESTROY"
 
 def get_states(fragments,verb_cats,ex,ax):
 	#State Progression
@@ -305,10 +329,29 @@ def get_states(fragments,verb_cats,ex,ax):
 					state[fragment[6][1].lower()] = [{"N":initialiser+"+"+fragment[3],"E":fragment[1],"A":fragment[5]}]
 					initialiser += "0"
 				else:
-					ct_state_ets = state[fragment[6][0].lower()]
+					ct_state_ets = state[fragment[6][1].lower()]
 					for ct_et in ct_state_ets:
 						if ct_et["E"] == fragment[1] and ct_et["A"] == fragment[5]:
 							ct_et["N"] += "+"+fragment[3]
+							break
+			elif vcat == "DESTROY":
+				if fragment[6][0].lower() not in state:
+					state[fragment[6][0].lower()] = [{"N":initialiser+"-"+fragment[3],"E":fragment[1],"A":fragment[5]}]
+					initialiser += "0"
+				else:
+					ct_state_ets = state[fragment[6][0].lower()]
+					for ct_et in ct_state_ets:
+						if ct_et["E"] == fragment[1] and ct_et["A"] == fragment[5]:
+							ct_et["N"] += "-"+fragment[3]
+							break
+				if fragment[6][1].lower() not in state:
+					state[fragment[6][1].lower()] = [{"N":initialiser+"-"+fragment[3],"E":fragment[1],"A":fragment[5]}]
+					initialiser += "0"
+				else:
+					ct_state_ets = state[fragment[6][1].lower()]
+					for ct_et in ct_state_ets:
+						if ct_et["E"] == fragment[1] and ct_et["A"] == fragment[5]:
+							ct_et["N"] += "-"+fragment[3]
 							break
 		states.append(state)
 	for state in states:
@@ -511,8 +554,8 @@ if __name__ == "__main__":
 	text = 'Liz had 9 black kittens. She gave some of her kittens to Joan. Joan has now 11 kittens. Liz has 5 kitten left and 3 has spots. How many kittens did Joan get?'
 	text = 'Liz had 9 black kittens. She gave some of her kittens to Joan. Joan has now 11 kittens. Liz has 5 kittens left and 3 has spots. How many kittens did Liz give?'
 	text = 'Jason found 49 seashells and 48 starfish on the beach . He gave 13 of the seashells to Tim . How many seashells does Jason now have ? '
-	# TODO
 	text = 'There are 42 walnut trees and 12 orange trees currently in the park. Park workers cut down 13 walnut trees that were damaged. How many walnut trees will be in the park when the workers are finished?'
+	# TODO
 	# text = 'Sara has 31 red and 15 green balloons . Sandy has 24 red balloons . How many red balloons do they have in total ? '
 	# text = 'Joan went to 4 football games this year. She went to 9 games last year. How many football games did Joan go?'
 	# TODO - coref prob
