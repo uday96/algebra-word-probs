@@ -68,29 +68,52 @@ def get_noun_phrases_entities(h,sentences,tree_parser):
 					et.append([np_str,h_noun,sentences[sid]])
 	return NPs,et
 
-def get_verbs(et,spacy_parser):
+def get_nearest_verb(verb_set,et):
+	sentence = et[2]
+	entity = et[0]
+	nearest_verb = "$"
+	min_dist = 10000
+	e_ind = sentence.find(entity)
+	for verb in verb_set:
+		v_ind = sentence.find(verb)
+		dist = abs(e_ind-v_ind)
+		if dist < min_dist:
+			nearest_verb = verb
+			min_dist = dist
+	return nearest_verb
+
+def get_verbs(et,dep_parser,nlp):
 	print("identifying vt...")
 	vt=[]
 	for entity in et:
-		spacy_pos = spacy_parser(entity[2])
-		for token in spacy_pos:
-			if(token.pos_) == "VERB":
-				vt.append([token.text,entity[1],entity[2]])
-				break
+		verb_set = set([])
+		document = nlp(entity[2])
+		for token in document[0]:
+			if "VB" in token.pos:
+				verb_set.update([str(token)])
+		result = dep_parser.raw_parse(entity[2])
+		for parse in result:
+			for dep in list(parse.triples()):
+				if "VB" in dep[0][1]:
+					verb_set.update([dep[0][0]])
+				if "VB" in dep[2][1]:
+					verb_set.update([dep[2][0]])
+		verb_set = list(verb_set)
+		if len(verb_set) > 1 and "did" in verb_set:
+			verb_set.remove("did")
+		if len(verb_set) > 1 and "does" in verb_set:
+			verb_set.remove("does")
+		nearest_verb = get_nearest_verb(verb_set,entity)
+		vt.append([nearest_verb,entity[1],entity[2]])
 	return vt
 
-def get_ex_vx(document2,sentences,h):
-	print("identifying ex & vx...")
+def get_ex(document2,sentences,h):
+	print("identifying ex...")
 	ex = None
-	vx = None
 	for np in document2.noun_chunks:
 		if(np.root.text in h):
 			ex = [np.text,np.root.text,sentences[-1]]
-			x = np.root.head
-			while(str(x.pos_)!="VERB"):
-				x = x.head
-			vx = [x.text,np.root.text]
-	return ex,vx
+	return ex
 
 def get_numt(et,numbers,variable):
 	print("identifying numt...")
@@ -234,7 +257,7 @@ def get_containers(fragments,dep_parser,nlp):
 		ct1="$"
 		ct2="$"
 		bool_there_is = False
-		if "there is" in fragment[0].lower() or "there are" in fragment[0].lower():
+		if "there is" in fragment[0].lower() or "there are" in fragment[0].lower() or "there will be" in fragment[0].lower():
 			bool_there_is = True
 		for parse in result:
 			for dep in list(parse.triples()):
@@ -287,6 +310,7 @@ def verb_category(verb,nlp):
 	NEG_TR_verbs = ["give"]
 	POS_TR_verbs = ["get"]
 	DESTROY_verbs = ["cut"]
+	CONSTRUCT_verbs = ["plant"]
 	if verb_lem in OBS_verbs:
 		return "OBS"
 	elif verb_lem in NEG_TR_verbs:
@@ -295,6 +319,8 @@ def verb_category(verb,nlp):
 		return "POS_TR"
 	elif verb_lem in DESTROY_verbs:
 		return "DESTROY"
+	elif verb_lem in CONSTRUCT_verbs:
+		return "CONSTRUCT"
 
 def get_states(fragments,verb_cats,ex,ax):
 	#State Progression
@@ -352,6 +378,25 @@ def get_states(fragments,verb_cats,ex,ax):
 					for ct_et in ct_state_ets:
 						if ct_et["E"] == fragment[1] and ct_et["A"] == fragment[5]:
 							ct_et["N"] += "-"+fragment[3]
+							break
+			elif vcat == "CONSTRUCT":
+				if fragment[6][0].lower() not in state:
+					state[fragment[6][0].lower()] = [{"N":initialiser+"+"+fragment[3],"E":fragment[1],"A":fragment[5]}]
+					initialiser += "0"
+				else:
+					ct_state_ets = state[fragment[6][0].lower()]
+					for ct_et in ct_state_ets:
+						if ct_et["E"] == fragment[1] and ct_et["A"] == fragment[5]:
+							ct_et["N"] += "+"+fragment[3]
+							break
+				if fragment[6][1].lower() not in state:
+					state[fragment[6][1].lower()] = [{"N":initialiser+"+"+fragment[3],"E":fragment[1],"A":fragment[5]}]
+					initialiser += "0"
+				else:
+					ct_state_ets = state[fragment[6][1].lower()]
+					for ct_et in ct_state_ets:
+						if ct_et["E"] == fragment[1] and ct_et["A"] == fragment[5]:
+							ct_et["N"] += "+"+fragment[3]
 							break
 		states.append(state)
 	for state in states:
@@ -463,7 +508,7 @@ def get_answer(solutions,states,fragments,fragx,nlp):
 		for state in states[-1][ctx1.lower()]:
 			if state["E"] == ex and state["A"] == ax:
 				ans = state["N"]
-	elif vx_cat == "NEG_TR" or vx_cat == "POS_TR":
+	elif vx_cat == "NEG_TR" or vx_cat == "POS_TR" or vx_cat == "DESTROY" or vx_cat == "CONSTRUCT":
 		for fragment in fragments:
 			vt = fragment[4]
 			dvt = nlp(vt)
@@ -524,9 +569,11 @@ def word_prob_solver(text):
 		print(text)
 	sentences,numbers = get_numbers(document)
 	NPs,et = get_noun_phrases_entities(h,sentences,tree_parser)
-	vt = get_verbs(et,spacy_parser)
 	document2 = spacy_parser(text)
-	ex,vx = get_ex_vx(document2,sentences,h)
+	ex = get_ex(document2,sentences,h)
+	vt = get_verbs(et+[ex],dep_parser,nlp)
+	vx = vt[-1]
+	del vt[-1]
 	variable = "$"
 	numt,variable = get_numt(et,numbers,variable)
 	process_bare_num(numbers,sentences,numt,et,vt,h)
@@ -553,8 +600,9 @@ if __name__ == "__main__":
 	text = 'Joan found 70 seashells on the beach . she gave some of her seashells to Sam. She has 27 seashell . How many seashells did she give to Sam ?'
 	text = 'Liz had 9 black kittens. She gave some of her kittens to Joan. Joan has now 11 kittens. Liz has 5 kitten left and 3 has spots. How many kittens did Joan get?'
 	text = 'Liz had 9 black kittens. She gave some of her kittens to Joan. Joan has now 11 kittens. Liz has 5 kittens left and 3 has spots. How many kittens did Liz give?'
-	text = 'Jason found 49 seashells and 48 starfish on the beach . He gave 13 of the seashells to Tim . How many seashells does Jason now have ? '
 	text = 'There are 42 walnut trees and 12 orange trees currently in the park. Park workers cut down 13 walnut trees that were damaged. How many walnut trees will be in the park when the workers are finished?'
+	text = 'There are 22 walnut trees currently in the park . Park workers will plant walnut trees today . When the workers are finished there will be 55 walnut trees in the park . How many walnut trees did the workers plant today ?'
+	text = 'Jason found 49 seashells and 48 starfish on the beach . He gave 13 of the seashells to Tim . How many seashells does Jason now have ? '
 	# TODO
 	# text = 'Sara has 31 red and 15 green balloons . Sandy has 24 red balloons . How many red balloons do they have in total ? '
 	# text = 'Joan went to 4 football games this year. She went to 9 games last year. How many football games did Joan go?'
