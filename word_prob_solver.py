@@ -43,7 +43,6 @@ def get_num_dep_nouns(document,dep_parser):
 	print("identifying nouns dep numbers...")
 	h = set([])
 	for sentence in document:
-		print(sentence)
 		result = dep_parser.raw_parse(str(sentence))
 		for parse in result:
 			for dep in list(parse.triples()):
@@ -238,16 +237,21 @@ def get_attributes(et,ex,dep_parser):
 	del at[-1]
 	return at,ax
 
-def get_fragments(et,numt,vt,at,ex,vx,ax):
+def get_fragments(et,numt,vt,at,ex,vx,ax,sentences):
 	print("identifying fragments...")
 	fragments = []
-	for e,n,v,a  in zip(et,numt,vt,at):
-		print(e,n,v,a,"\n",sep="\n")
-		fragments.append([e[2],e[1],e[0],n[0],v[0],a[0]])
+	for sid in range(len(sentences)-1):
+		has_frag = False
+		for e,n,v,a  in zip(et,numt,vt,at):
+			if sentences[sid] == e[2]:
+				fragments.append([e[2],e[1],e[0],n[0],v[0],a[0]])
+				has_frag = True
+		if not has_frag:
+			fragments.append([sentences[sid],"$","$","$","$","$"])
 	fragments.append([ex[2],ex[1],ex[0],"$",vx[0],ax[0]])
 	return fragments
 
-def get_containers(fragments,dep_parser,nlp):
+def get_containers(fragments,h,dep_parser,nlp):
 	print("identifying ct...")
 	ct=[]
 	last_ct="$"
@@ -262,32 +266,32 @@ def get_containers(fragments,dep_parser,nlp):
 		for parse in result:
 			for dep in list(parse.triples()):
 				if dep[1] == "nsubj" and dep[0][0] == fragment[4] and not bool_there_is:
-					if ct1 == "$":
+					if ct1 == "$" and dep[2][0] not in h:
 						ct1 = dep[2][0]
 						last_ct = ct1
 				elif dep[1] == "case" and dep[2][0] == "in" and bool_there_is:
-					if ct1 == "$":
+					if ct1 == "$" and dep[0][0] not in h:
 						ct1 = dep[0][0]
 						last_ct = ct1
 						is_loc_related = True
 				elif dep[1] == "case" and dep[2][0] == "in" and is_loc_related and "how many" in fragment[0].lower():
-					if ct1 == "$":
+					if ct1 == "$" and dep[0][0] not in h:
 						ct1 = dep[0][0]
 						last_ct = ct1
 				elif dep[1] == "compound" and dep[0][0] == ct1:
-					if ct2 == "$":
+					if ct2 == "$" and dep[2][0] not in h:
 						ct2 = dep[2][0]
 						last_ct = ct1
 				elif dep[1] == "iobj" and dep[0][0] == fragment[4]:
-					if ct2 == "$":
+					if ct2 == "$" and dep[2][0] not in h:
 						ct2 = dep[2][0]
 						last_ct = ct1
 				elif dep[1] == "nmod" and dep[0][0] == fragment[4]:
-					if ct2 == "$":
+					if ct2 == "$" and dep[2][0] not in h:
 						ct2 = dep[2][0]
 						last_ct = ct1
 				elif dep[1] == "nsubjpass" and is_loc_related and "how many" in fragment[0].lower():
-					if ct2 == "$":
+					if ct2 == "$" and dep[2][0] not in h:
 						ct2 = dep[2][0]
 						last_ct = ct2
 		if ct1 == "$":
@@ -307,12 +311,15 @@ def verb_category(verb,nlp):
 	dv = nlp(verb)
 	verb_lem = dv[0][0].lemma
 	OBS_verbs = ["have","find","are","be"]
+	POS_verbs = ["go"]
 	NEG_TR_verbs = ["give"]
 	POS_TR_verbs = ["get"]
 	DESTROY_verbs = ["cut"]
 	CONSTRUCT_verbs = ["plant"]
 	if verb_lem in OBS_verbs:
 		return "OBS"
+	elif verb_lem in POS_verbs:
+		return "POS"
 	elif verb_lem in NEG_TR_verbs:
 		return "NEG_TR"
 	elif verb_lem in POS_TR_verbs:
@@ -340,6 +347,16 @@ def get_states(fragments,verb_cats,ex,ax):
 					for ct_et in ct_state_ets:
 						if ct_et["E"] == fragment[1] and ct_et["A"] == fragment[5]:
 							ct_et["N"] = fragment[3]
+							break
+			elif vcat == "POS":
+				if fragment[6][0].lower() not in state:
+					state[fragment[6][0].lower()] = [{"N":initialiser+"+"+fragment[3],"E":fragment[1],"A":fragment[5]}]
+					initialiser += "0"
+				else:
+					ct_state_ets = state[fragment[6][0].lower()]
+					for ct_et in ct_state_ets:
+						if ct_et["E"] == fragment[1] and ct_et["A"] == fragment[5]:
+							ct_et["N"] += "+"+fragment[3]
 							break
 			elif vcat == "NEG_TR":
 				if fragment[6][0].lower() not in state:
@@ -503,22 +520,22 @@ def get_answer(solutions,states,fragments,fragx,nlp):
 	dvx = nlp(vx)
 	vx_lem = dvx[0][0].lemma
 	vx_cat = verb_category(vx,nlp)
-	ans = None
+	ans = ""
 	if vx_cat == "OBS" and ctx1.lower() in states[-1]:
 		for state in states[-1][ctx1.lower()]:
 			if state["E"] == ex and state["A"] == ax:
 				ans = state["N"]
-	elif vx_cat == "NEG_TR" or vx_cat == "POS_TR" or vx_cat == "DESTROY" or vx_cat == "CONSTRUCT":
+	else:
 		for fragment in fragments:
 			vt = fragment[4]
 			dvt = nlp(vt)
 			vt_lem = dvt[0][0].lemma
 			if ctx1 != ctx2:
 				if ctx1 == fragment[6][0] and ctx2 == fragment[6][1] and vx_lem == vt_lem and ex == fragment[1] and ax == fragment[5]:
-					ans = fragment[3]
+					ans += "+"+fragment[3]
 			else:
 				if ctx1 == fragment[6][0] and vx_lem == vt_lem and ex == fragment[1] and ax == fragment[5]:
-					ans = fragment[3]
+					ans += "+"+fragment[3]
 	if not ans:
 		for fragment in fragments:
 			vt = fragment[4]
@@ -531,11 +548,13 @@ def get_answer(solutions,states,fragments,fragx,nlp):
 			if opposite_verbs:
 				if ctx1 != ctx2:
 					if ctx1 == fragment[6][1] and ctx2 == fragment[6][0] and ex == fragment[1] and ax == fragment[5]:
-						ans = fragment[3]
+						ans += "+"+fragment[3]
 				else:
 					if ctx1 == fragment[6][1] and ex == fragment[1] and ax == fragment[5]:
-						ans = fragment[3]
+						ans += "+"+fragment[3]
 	if ans:
+		if ans[0] == '+':
+			ans = ans[1:]
 		for sol in solutions:
 			if sol in ans:
 				ans = ans.replace(sol,solutions[sol])
@@ -544,6 +563,10 @@ def get_answer(solutions,states,fragments,fragx,nlp):
 			parts = ans.split("-")
 			if len(parts)==2 and check_int(parts[0]) and check_int(parts[1]):
 				ans = str(int(parts[0]) - int(parts[1]))
+		if "+" in ans:
+			parts = ans.split("+")
+			if len(parts)==2 and check_int(parts[0]) and check_int(parts[1]):
+				ans = str(int(parts[0]) + int(parts[1]))
 	print("Ans: ",ans)
 	return ans
 
@@ -578,9 +601,9 @@ def word_prob_solver(text):
 	numt,variable = get_numt(et,numbers,variable)
 	process_bare_num(numbers,sentences,numt,et,vt,h)
 	at,ax = get_attributes(et,ex,dep_parser)
-	fragments = get_fragments(et,numt,vt,at,ex,vx,ax)
+	fragments = get_fragments(et,numt,vt,at,ex,vx,ax,sentences)
 	assert len(fragments) == len(sentences)
-	ct = get_containers(fragments,dep_parser,nlp)
+	ct = get_containers(fragments,h,dep_parser,nlp)
 	for fragment in fragments:
 		print(fragment,"\n")
 	fragx = fragments[-1]
@@ -603,9 +626,10 @@ if __name__ == "__main__":
 	text = 'There are 42 walnut trees and 12 orange trees currently in the park. Park workers cut down 13 walnut trees that were damaged. How many walnut trees will be in the park when the workers are finished?'
 	text = 'There are 22 walnut trees currently in the park . Park workers will plant walnut trees today . When the workers are finished there will be 55 walnut trees in the park . How many walnut trees did the workers plant today ?'
 	text = 'Jason found 49 seashells and 48 starfish on the beach . He gave 13 of the seashells to Tim . How many seashells does Jason now have ? '
+	text = 'Joan went to 4 football games this year. She went to 9 games last year. How many football games did Joan go?'
 	# TODO
+	# text = 'Mary is baking a cake . The recipe wants 8 cups of flour . She already put in 2 cups . How many cups does she need to add ? '
 	# text = 'Sara has 31 red and 15 green balloons . Sandy has 24 red balloons . How many red balloons do they have in total ? '
-	# text = 'Joan went to 4 football games this year. She went to 9 games last year. How many football games did Joan go?'
 	# TODO - coref prob
 	# text = 'There were 28 bales of hay in the barn . Tim stacked bales in the barn today . There are now 54 bales of hay in the barn . How many bales did he store in the barn ? '
 	word_prob_solver(text)

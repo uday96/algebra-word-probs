@@ -118,6 +118,18 @@ def resolve_corefs(text):
 		context += " ".join(resolved_utterance_text).strip()
 	return context
 
+def cap_proper_nouns(text):
+	document = nlp(text)
+	processed_text = text
+	for sentence in document:
+		for token in sentence:
+			t = str(token).strip()
+			if len(t) > 1:
+				cap_nnp_t = t[0].upper() + t[1:]
+				if cap_nnp_t in processed_text:
+					processed_text = processed_text.replace(t,cap_nnp_t)
+	return processed_text
+
 def preprocess_text(text):
 	document = nlp(text)
 	processed_text = ""
@@ -134,6 +146,7 @@ def preprocess_text(text):
 	processed_text = processed_text.replace(" .",".")
 	processed_text = processed_text.replace(". ",".")
 	processed_text = processed_text.replace("."," . ")
+	processed_text = cap_proper_nouns(processed_text)
 	return processed_text
 
 
