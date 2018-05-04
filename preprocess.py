@@ -52,7 +52,7 @@ def resolve_conjs(text):
 	document2 = spacy_parser(text)
 	has_conj = False
 	conj_str = None
-	conjs = ["and","but","if","then"]
+	conjs = ["and ","but ","if ","then "]
 	for conj in conjs:
 		if conj in text:
 			has_conj = True
@@ -61,7 +61,7 @@ def resolve_conjs(text):
 	if not has_conj:
 		print("conjuction not found")
 		return text,""
-	parts = text.split(conj_str+" ")
+	parts = text.split(conj_str)
 	if len(parts) != 2:
 		print("Error")
 	first_part = parts[0].strip()
@@ -112,6 +112,9 @@ def resolve_corefs(text):
 	context = ""
 	for sentence in document:
 		print(str(sentence))
+		if "they " in str(sentence):
+			context += " "+str(sentence).strip()
+			continue
 		clusters = coref.one_shot_coref(utterances=str(sentence).strip(), context=context)
 		resolved_utterance_text = coref.get_resolved_utterances()
 		print(resolved_utterance_text)

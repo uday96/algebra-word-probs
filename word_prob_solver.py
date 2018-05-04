@@ -51,6 +51,27 @@ def get_num_dep_nouns(document,dep_parser):
 	h = list(h)
 	return h
 
+def filter_et(et,sentences,numbers):
+	et_filtered = []
+	for sentence in sentences:
+		sent_ets = []
+		for et_x in et:
+			if et_x[2] == sentence:
+				sent_ets.append(et_x)
+		if len(sent_ets) > 1:
+			picked_et = False
+			for sent_et in sent_ets:
+				for num in numbers:
+					if num[0] in sent_et[0] and sent_et[2] == num[1]:
+						picked_et = True
+						et_filtered.append(sent_et)
+						break
+				if picked_et:
+					break
+		elif len(sent_ets) == 1:
+			et_filtered.append(sent_ets[0])
+	return et_filtered
+
 def get_noun_phrases_entities(h,sentences,tree_parser):
 	print("identifying NPs & et...")
 	NPs=[]
@@ -104,6 +125,8 @@ def get_verbs(et,dep_parser,nlp):
 			verb_set.remove("does")
 		if len(verb_set) > 1 and "do" in verb_set:
 			verb_set.remove("do")
+		if len(verb_set) > 1 and "were" in verb_set:
+			verb_set.remove("were")
 		nearest_verb = get_nearest_verb(verb_set,entity)
 		vt.append([nearest_verb,entity[1],entity[2]])
 	return vt
@@ -135,7 +158,7 @@ def get_numt(et,numbers):
 			variable = "$"+str(variable_dcount)
 	return numt
 
-def process_bare_num(numbers,sentences,numt,et,vt,h):
+def process_bare_num(numbers,sentences,numt,et,h):
 	if len(numbers)==0:
 		return
 	print("bare numbers found...")
@@ -208,8 +231,8 @@ def process_bare_num(numbers,sentences,numt,et,vt,h):
 					break
 			if not update_existing_numt:
 				numt.append([num[0],h_noun_num,num[1]])
-				et.append([num[0]+"|"+h_noun_num,h_noun_num,num[1]])
-				vt.append([num[0]+"|"+h_noun_num,h_noun_num,num[1]])
+				et.append([num[0]+" "+h_noun_num,h_noun_num,num[1]])
+				# vt.append([num[0]+"|"+h_noun_num,h_noun_num,num[1]])
 		else:
 			print("No entity found for bare number: "+str(num[0]))
 
@@ -274,6 +297,10 @@ def get_containers(fragments,h,dep_parser,nlp):
 					if ct1 == "$" and dep[2][0] not in h:
 						ct1 = dep[2][0]
 						last_ct = ct1
+				elif dep[1] == "nmod:poss" and dep[0][0] == ct1 and not bool_there_is:
+					if dep[2][0] not in h:
+						ct1 = dep[2][0]
+						last_ct = ct1
 				elif dep[1] == "case" and dep[2][0] == "in" and bool_there_is:
 					if ct1 == "$" and dep[0][0] not in h:
 						ct1 = dep[0][0]
@@ -283,22 +310,37 @@ def get_containers(fragments,h,dep_parser,nlp):
 					if ct1 == "$" and dep[0][0] not in h:
 						ct1 = dep[0][0]
 						last_ct = ct1
+				elif dep[1] == "case" and dep[2][0] == "by":
+					if ct1 == "$" and dep[0][0] not in h:
+						ct1 = dep[0][0]
+						last_ct = ct1
+					elif ct2 == "$" and dep[0][0] not in h:
+						ct2 = dep[0][0]
+						# last_ct = ct2
 				elif dep[1] == "compound" and dep[0][0] == ct1:
 					if ct2 == "$" and dep[2][0] not in h:
 						ct2 = dep[2][0]
-						last_ct = ct1
+						# last_ct = ct2
 				elif dep[1] == "iobj" and dep[0][0] == fragment[4]:
 					if ct2 == "$" and dep[2][0] not in h:
 						ct2 = dep[2][0]
-						last_ct = ct1
+						# last_ct = ct2
 				elif dep[1] == "nmod" and dep[0][0] == fragment[4]:
 					if ct2 == "$" and dep[2][0] not in h:
 						ct2 = dep[2][0]
-						last_ct = ct1
+						# last_ct = ct2
+				elif dep[1] == "advmod" and dep[0][0] == fragment[4]:
+					if ct2 == "$" and dep[2][0] not in h:
+						ct2 = dep[2][0]
+						# last_ct = ct2
 				elif dep[1] == "nsubjpass" and is_loc_related and "how many" in fragment[0].lower():
 					if ct2 == "$" and dep[2][0] not in h:
 						ct2 = dep[2][0]
-						last_ct = ct2
+						# last_ct = ct2
+		if ct1 == "$" and ct2 != "$":
+			ct1 = ct2
+		if ct2 == "$" and ct1 != "$":
+			ct2 = ct1
 		if ct1 == "$":
 			ct1 = last_ct
 		if ct2 == "$":
@@ -316,11 +358,11 @@ def verb_category(verb,nlp):
 	dv = nlp(verb)
 	verb_lem = dv[0][0].lemma
 	OBS_verbs = ["have","find","are","be"]
-	POS_verbs = ["go","pick"]
-	NEG_TR_verbs = ["give"]
+	POS_verbs = ["go","pick","grow"]
+	NEG_TR_verbs = ["give","place"]
 	POS_TR_verbs = ["get"]
 	DESTROY_verbs = ["cut"]
-	CONSTRUCT_verbs = ["plant"]
+	CONSTRUCT_verbs = ["plant","serve"]
 	if verb_lem in OBS_verbs:
 		return "OBS"
 	elif verb_lem in POS_verbs:
@@ -516,7 +558,20 @@ def bool_opposite_verbs(v1_cat,v2_cat):
 		return True
 	return False
 
-def get_answer(solutions,states,fragments,fragx,nlp):
+def set_inits_zero(ans):
+	if "J" not in ans:
+		return ans
+	while "J" in ans:
+		j_token = ""
+		j_ind = ans.index("J")
+		for ch in ans[j_ind:]:
+			j_token += ch
+			if ch in ["+","-"]:
+				break
+		ans = ans.replace(j_token,"")
+	return ans
+
+def get_answer(solutions,states,fragments,fragx,orig_text,nlp):
 	print("getting answer...")
 	ctx1,ctx2 = fragx[6]
 	ex = fragx[1]
@@ -526,21 +581,67 @@ def get_answer(solutions,states,fragments,fragx,nlp):
 	vx_lem = dvx[0][0].lemma
 	vx_cat = verb_category(vx,nlp)
 	ans = ""
+	bool_get_init = False
+	bool_they_total = False
+	NNPs = set([])
+	if "start" in fragx[0].lower() or "begin" in fragx[0].lower():
+		bool_get_init = True
+	if ctx1 == "they" and (ctx2 == "total" or ctx2 == "together"):
+		bool_they_total = True
+		ddp = nlp(orig_text)
+		for dds in ddp:
+			for ddt in dds:
+				if ddt.pos == "NNP":
+					NNPs.update([str(ddt.lemma).lower()])
+	NNPs = list(NNPs)
 	if vx_cat == "OBS" and ctx1.lower() in states[-1]:
-		for state in states[-1][ctx1.lower()]:
-			if state["E"] == ex and state["A"] == ax:
-				ans = state["N"]
+		if bool_get_init:
+			for state_x in states:
+				if ans:
+					break
+				if not bool_they_total:
+					for state in state_x[ctx1.lower()]:
+						if state["E"] == ex and state["A"] == ax:
+							ans = state["N"]
+							break
+				else:
+					for nnp in NNPs:
+						for state in state_x[nnp.lower()]:
+							if state["E"] == ex and state["A"] == ax:
+								ans += "+"+state["N"]
+								break
+		else:
+			if not bool_they_total:
+				for state in states[-1][ctx1.lower()]:
+					if state["E"] == ex and state["A"] == ax:
+						ans = state["N"]
+						break
+			else:
+				for nnp in NNPs:
+					for state in states[-1][nnp.lower()]:
+						if state["E"] == ex and state["A"] == ax:
+							ans += "+"+state["N"]
+							break
 	else:
 		for fragment in fragments:
 			vt = fragment[4]
 			dvt = nlp(vt)
 			vt_lem = dvt[0][0].lemma
-			if ctx1 != ctx2:
-				if ctx1 == fragment[6][0] and ctx2 == fragment[6][1] and vx_lem == vt_lem and ex == fragment[1] and ax == fragment[5]:
-					ans += "+"+fragment[3]
+			if not bool_they_total:
+				if ctx1 != ctx2:
+					if ctx1 == fragment[6][0] and ctx2 == fragment[6][1] and vx_lem == vt_lem and ex == fragment[1] and ax == fragment[5]:
+						ans += "+"+fragment[3]
+				else:
+					if ctx1 == fragment[6][0] and vx_lem == vt_lem and ex == fragment[1] and ax == fragment[5]:
+						ans += "+"+fragment[3]
+					elif ctx1 != fragment[6][0] and ctx2 == fragment[6][1] and vx_lem == vt_lem and ex == fragment[1] and ax == fragment[5] and vx_cat in ["CONSTRUCT","DESTROY"]:
+						ans += "+"+fragment[3]
 			else:
-				if ctx1 == fragment[6][0] and vx_lem == vt_lem and ex == fragment[1] and ax == fragment[5]:
-					ans += "+"+fragment[3]
+				for nnp in NNPs:
+					if nnp == fragment[6][0] and vx_lem == vt_lem and ex == fragment[1] and ax == fragment[5]:
+						ans += "+"+fragment[3]
+					elif nnp != fragment[6][0] and nnp == fragment[6][1] and vx_lem == vt_lem and ex == fragment[1] and ax == fragment[5] and vx_cat in ["CONSTRUCT","DESTROY"]:
+						ans += "+"+fragment[3]
 	if not ans:
 		for fragment in fragments:
 			vt = fragment[4]
@@ -557,6 +658,8 @@ def get_answer(solutions,states,fragments,fragx,nlp):
 				else:
 					if ctx1 == fragment[6][1] and ex == fragment[1] and ax == fragment[5]:
 						ans += "+"+fragment[3]
+					elif ctx1 != fragment[6][0] and ctx2 == fragment[6][1] and vx_lem == vt_lem and ex == fragment[1] and ax == fragment[5] and vx_cat in ["CONSTRUCT","DESTROY"]:
+						ans += "+"+fragment[3]
 	if ans:
 		if ans[0] == '+':
 			ans = ans[1:]
@@ -564,6 +667,7 @@ def get_answer(solutions,states,fragments,fragx,nlp):
 			if sol in ans:
 				ans = ans.replace(sol,solutions[sol])
 		ans = ans.strip()
+		ans = set_inits_zero(ans)
 		if "-" in ans:
 			parts = ans.split("-")
 			if len(parts)==2 and check_int(parts[0]) and check_int(parts[1]):
@@ -597,13 +701,14 @@ def word_prob_solver(text):
 		print(text)
 	sentences,numbers = get_numbers(document)
 	NPs,et = get_noun_phrases_entities(h,sentences,tree_parser)
+	et = filter_et(et,sentences,numbers)
 	document2 = spacy_parser(text)
 	ex = get_ex(document2,sentences,h)
+	numt = get_numt(et,numbers)
+	process_bare_num(numbers,sentences,numt,et,h)
 	vt = get_verbs(et+[ex],dep_parser,nlp)
 	vx = vt[-1]
 	del vt[-1]
-	numt = get_numt(et,numbers)
-	process_bare_num(numbers,sentences,numt,et,vt,h)
 	at,ax = get_attributes(et,ex,dep_parser)
 	fragments = get_fragments(et,numt,vt,at,ex,vx,ax,sentences)
 	assert len(fragments) == len(sentences)
@@ -618,25 +723,37 @@ def word_prob_solver(text):
 	states = get_states(fragments,verb_cats,ex,ax)
 	equations = build_equations(states)
 	solutions = solve_equations(equations)
-	answer = get_answer(solutions,states,fragments,fragx,nlp)
+	answer = get_answer(solutions,states,fragments,fragx,orig_text,nlp)
 	print("\n","---------------------------","\n")
 	print("Que: ",orig_text,"\n")
 	print("Ans: ",answer,"\n")
 
 if __name__ == "__main__":
 	text = 'Joan found 70 seashells on the beach . she gave some of her seashells to Sam. She has 27 seashell . How many seashells did she give to Sam ?'
+	text = 'Jason found 49 seashells and 48 starfish on the beach . He gave 13 of the seashells to Tim . How many seashells does Jason now have ? '
 	text = 'Liz had 9 black kittens. She gave some of her kittens to Joan. Joan has now 11 kittens. Liz has 5 kitten left and 3 has spots. How many kittens did Joan get?'
 	text = 'Liz had 9 black kittens. She gave some of her kittens to Joan. Joan has now 11 kittens. Liz has 5 kittens left and 3 has spots. How many kittens did Liz give?'
 	text = 'There are 42 walnut trees and 12 orange trees currently in the park. Park workers cut down 13 walnut trees that were damaged. How many walnut trees will be in the park when the workers are finished?'
 	text = 'There are 22 walnut trees currently in the park . Park workers will plant walnut trees today . When the workers are finished there will be 55 walnut trees in the park . How many walnut trees did the workers plant today ?'
-	text = 'Jason found 49 seashells and 48 starfish on the beach . He gave 13 of the seashells to Tim . How many seashells does Jason now have ? '
+	text = "There are 4 walnut trees currently in the park . Park workers will plant 6 walnut trees today . How many walnut trees will the park have when the workers are finished ? "
 	text = 'Joan went to 4 football games this year. She went to 9 games last year. How many football games did Joan go?'
-	text = "Mike had 34 peaches at his roadside fruit dish . He went to the orchard and picked peaches to stock up . There are now 86 peaches . how many did he pick ? "
+	text = 'Mike had 34 peaches at his roadside fruit dish . He went to the orchard and picked peaches to stock up . There are now 86 peaches . how many did he pick ? '
+	text = 'Sam had 9 dimes in his bank . His dad gave him 7 dimes . How many dimes does Sam have now ? '
+	text = "Alyssa 's dog had puppies . She gave 7 to her friends . She now has 5 puppies . How many puppies did she have to start with ? "
+	text = "A restaurant served 9 pizzas during lunch and 6 during dinner today . How many pizzas were served today ? "
+	text = "A restaurant served 9 pizzas during lunch and 6 during dinner today . How many pizzas were served today during lunch? "
+	text = "Sandy grew 6 carrots . Sam grew 3 carrots . How many carrots did they grow in total ? "
+	text = "Tom has 9 yellow balloons and Sara has 8 yellow balloons . How many yellow balloons do they have in total ? "
+	text = "Sally found 9 seashells . Tom found 7 seashells and Jessica found 5 seashells on the beach . How many seashells did they find together ? "
+	text = "Joan has 9 blue balloons . Sally has 5 blue balloons and Jessica has 2 blue balloons . How many blue balloons do they have in total ? "
+	text = "Melanie had 7 dimes in her bank . Her dad gave her 8 dimes and her mother gave her 4 dimes . How many dimes does Melanie have now ? "
 	# TODO
 	# text = 'Mary is baking a cake . The recipe wants 8 cups of flour . She already put in 2 cups . How many cups does she need to add ? '
 	# text = 'Sara has 31 red and 15 green balloons . Sandy has 24 red balloons . How many red balloons do they have in total ? '
+	# text = "There are 2 pencils in the drawer . Tim placed 3 pencils in the drawer . How many pencils are now there in total ? "
 	# TODO - coref prob
 	# text = "Tom has 9 yellow balloons and Sara has 8 yellow balloons . How many yellow balloons do they have in total ? "
 	# text = 'There were 28 bales of hay in the barn . Tim stacked bales in the barn today . There are now 54 bales of hay in the barn . How many bales did he store in the barn ? '
 	# text = "Sara 's high school played 12 basketball games this year . The team won most of their games . They were defeated during 4 games . How many games did they win ? "
+	# text = "Tim 's cat had kittens . He gave 3 to Jessica and 6 to Sara . He now has 9 kittens . How many kittens did he have to start with ?"
 	word_prob_solver(text)
