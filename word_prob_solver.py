@@ -85,7 +85,7 @@ def get_noun_phrases_entities(h,sentences,tree_parser):
 			NPs.append([np_str,sentences[sid]])
 			for h_noun in h:
 				if h_noun in np_str:
-					et.append([np_str,h_noun,sentences[sid]])
+					et.append([np_str,h_noun,sentences[sid],sid])
 	return NPs,et
 
 def get_nearest_verb(verb_set,et):
@@ -102,21 +102,21 @@ def get_nearest_verb(verb_set,et):
 			min_dist = dist
 	return nearest_verb
 
-def get_verbs(et,dep_parser,nlp):
+def get_verbs(et,non_lem_sents,dep_parser,nlp):
 	print("identifying vt...")
 	vt=[]
 	for entity in et:
 		verb_set = set([])
-		document = nlp(entity[2])
+		document = nlp(non_lem_sents[entity[3]])
 		for token in document[0]:
 			if "VB" in token.pos:
 				verb_set.update([str(token)])
-		result = dep_parser.raw_parse(entity[2])
+		result = dep_parser.raw_parse(non_lem_sents[entity[3]])
 		for parse in result:
 			for dep in list(parse.triples()):
-				if "VB" in dep[0][1]:
+				if "VB" in dep[0][1] and dep[0][1] != "VBN":
 					verb_set.update([dep[0][0]])
-				if "VB" in dep[2][1]:
+				if "VB" in dep[2][1] and dep[0][1] != "VBN":
 					verb_set.update([dep[2][0]])
 		verb_set = list(verb_set)
 		if len(verb_set) > 1 and "did" in verb_set:
@@ -136,7 +136,7 @@ def get_ex(document2,sentences,h):
 	ex = None
 	for np in document2.noun_chunks:
 		if(np.root.text in h):
-			ex = [np.text,np.root.text,sentences[-1]]
+			ex = [np.text,np.root.text,sentences[-1],len(sentences)-1]
 	return ex
 
 def get_numt(et,numbers):
@@ -222,7 +222,7 @@ def process_bare_num(numbers,sentences,numt,et,h):
 		elif h_noun_front:
 			h_noun_num = h_noun_front
 		if h_noun_num:
-			print([num[0],h_noun_num])
+			# print([num[0],h_noun_num])
 			update_existing_numt = False
 			for enum in numt:
 				if("$" in enum[0] and enum[1] == h_noun_num and enum[2] == num[1]):
@@ -231,7 +231,7 @@ def process_bare_num(numbers,sentences,numt,et,h):
 					break
 			if not update_existing_numt:
 				numt.append([num[0],h_noun_num,num[1]])
-				et.append([num[0]+" "+h_noun_num,h_noun_num,num[1]])
+				et.append([num[0]+" "+h_noun_num,h_noun_num,num[1],num[2]])
 				# vt.append([num[0]+"|"+h_noun_num,h_noun_num,num[1]])
 		else:
 			print("No entity found for bare number: "+str(num[0]))
@@ -258,25 +258,25 @@ def get_attributes(et,ex,dep_parser):
 			at.append([str(dep_tup[0][0]),e[1],e[2]])
 			last_at = str(dep_tup[0][0])
 		if not flag:
-			print("No attribute found for entity: "+str(e[1]))
+			# print("No attribute found for entity: "+str(e[1]))
 			at.append([last_at,e[1],e[2]])
 	print("identifying ax...")
 	ax = at[-1]
 	del at[-1]
 	return at,ax
 
-def get_fragments(et,numt,vt,at,ex,vx,ax,sentences):
+def get_fragments(et,numt,vt,at,ex,vx,ax,sentences,non_lem_sents):
 	print("identifying fragments...")
 	fragments = []
 	for sid in range(len(sentences)-1):
 		has_frag = False
 		for e,n,v,a  in zip(et,numt,vt,at):
 			if sentences[sid] == e[2]:
-				fragments.append([e[2],e[1],e[0],n[0],v[0],a[0]])
+				fragments.append([non_lem_sents[sid],e[1],e[0],n[0],v[0],a[0]])
 				has_frag = True
 		if not has_frag:
-			fragments.append([sentences[sid],"$","$","$","$","$"])
-	fragments.append([ex[2],ex[1],ex[0],"$",vx[0],ax[0]])
+			fragments.append([non_lem_sents[sid],"$","$","$","$","$"])
+	fragments.append([non_lem_sents[-1],ex[1],ex[0],"$",vx[0],ax[0]])
 	return fragments
 
 def get_containers(fragments,h,dep_parser,nlp):
@@ -330,6 +330,10 @@ def get_containers(fragments,h,dep_parser,nlp):
 						ct2 = dep[2][0]
 						# last_ct = ct2
 				elif dep[1] == "advmod" and dep[0][0] == fragment[4]:
+					if ct2 == "$" and dep[2][0] not in h and dep[2][0].lower() != "how" and dep[2][0].lower() != "now":
+						ct2 = dep[2][0]
+						# last_ct = ct2
+				elif dep[1] == "xcomp" and dep[0][0] == fragment[4]:
 					if ct2 == "$" and dep[2][0] not in h:
 						ct2 = dep[2][0]
 						# last_ct = ct2
@@ -357,8 +361,8 @@ def verb_category(verb,nlp):
 	verb = verb.lower().strip()
 	dv = nlp(verb)
 	verb_lem = dv[0][0].lemma
-	OBS_verbs = ["have","find","are","be"]
-	POS_verbs = ["go","pick","grow"]
+	OBS_verbs = ["have","are","be"]
+	POS_verbs = ["go","pick","grow","find"]
 	NEG_TR_verbs = ["give","place"]
 	POS_TR_verbs = ["get"]
 	DESTROY_verbs = ["cut"]
@@ -463,6 +467,7 @@ def get_states(fragments,verb_cats,ex,ax):
 							ct_et["N"] += "+"+fragment[3]
 							break
 		states.append(state)
+	print("final states: ","\n")
 	for state in states:
 		print(state,"\n")
 	return states
@@ -493,13 +498,15 @@ def build_equations(states):
 				else:
 					eq_subs[eq_subs_str].append(ct_et["N"])
 	for eq in eq_subs:
-		print(eq," : ",eq_subs[eq])
+		# print(eq," : ",eq_subs[eq])
 		for eqi in range(len(eq_subs[eq])):
 			if eqi+1 < len(eq_subs[eq]):
 				if "$" in eq_subs[eq][eqi] and "$" not in eq_subs[eq][eqi+1]:
 					equation = eq_subs[eq][eqi]+"="+eq_subs[eq][eqi+1]
 					equations.append(equation)
-					print(equation)
+					# print(equation)
+
+	print("\n",equations,"\n")
 	return equations
 
 def check_int(s):
@@ -508,9 +515,7 @@ def check_int(s):
 		return s[1:].isdigit()
 	return s.isdigit()
 
-def solve_equations(equations):
-	# assuming lhs always has variable and rhs has int
-	print("solving equations...")
+def solve(equations):
 	solutions = {}
 	for eq in equations:
 		parts = eq.split("=")
@@ -526,13 +531,26 @@ def solve_equations(equations):
 				solutions[lhs[0]] = str(int(parts[1].strip()) +  int(lhs[1].strip()))
 			elif "$" in lhs[1] and check_int(lhs[0]) and check_int(parts[1]):
 				solutions[lhs[1]] = str(int(lhs[0].strip()) -  int(parts[1].strip()))
-	print(solutions)
-	print(equations,"\n")
+	return solutions
+
+def solve_equations(equations):
+	# assuming lhs always has variable and rhs has int
+	print("solving equations...")
+	solutions = solve(equations)
+	# print("\n",solutions,"\n")
+	if len(solutions) == 0:
+		rep_init_eqs = []
+		for eq in equations:
+			rep_init_eqs.append(set_inits_zero(eq))
+		solutions = solve(rep_init_eqs)
+		equations = rep_init_eqs
+		# print(solutions)
+		# print(equations,"\n")
 	for eq in equations:
 		for sol in solutions:
 			if sol in eq:
 				eq = eq.replace(sol,solutions[sol])
-		print(eq)
+		# print(eq)
 		parts = eq.split("=")
 		if "+" in parts[0]:
 			lhs = parts[0].strip().split("+")
@@ -546,7 +564,7 @@ def solve_equations(equations):
 				solutions[lhs[0]] = str(int(parts[1].strip()) +  int(lhs[1].strip()))
 			elif "J0" in lhs[1] and check_int(lhs[0]) and check_int(parts[1]):
 				solutions[lhs[1]] = str(int(lhs[0].strip()) -  int(parts[1].strip()))
-	print(solutions,"\n")
+	print("\n",solutions,"\n")
 	return solutions
 
 def bool_opposite_verbs(v1_cat,v2_cat):
@@ -566,7 +584,7 @@ def set_inits_zero(ans):
 		j_ind = ans.index("J")
 		for ch in ans[j_ind:]:
 			j_token += ch
-			if ch in ["+","-"]:
+			if ch in ["+","-","="]:
 				break
 		ans = ans.replace(j_token,"")
 	return ans
@@ -668,23 +686,20 @@ def get_answer(solutions,states,fragments,fragx,orig_text,nlp):
 				ans = ans.replace(sol,solutions[sol])
 		ans = ans.strip()
 		ans = set_inits_zero(ans)
-		if "-" in ans:
-			parts = ans.split("-")
-			if len(parts)==2 and check_int(parts[0]) and check_int(parts[1]):
-				ans = str(int(parts[0]) - int(parts[1]))
-		if "+" in ans:
-			parts = ans.split("+")
-			if len(parts)==2 and check_int(parts[0]) and check_int(parts[1]):
-				ans = str(int(parts[0]) + int(parts[1]))
-	print("Ans: ",ans)
+		try:
+			ans = eval(ans)
+		except Exception as e:
+			pass
+	# print("Ans: ",ans)
 	return ans
 
 def word_prob_solver(text):
 	orig_text = text
 	nlp,spacy_parser,dep_parser,tree_parser = init_parsers()
 	text = preprocess_text(text)
-	print(text)
+	# print(text)
 	document = nlp(text)
+	non_lem_sents = [str(sent) for sent in document]
 	h = get_num_dep_nouns(document,dep_parser)
 	h_lem = set([])
 	is_h_lemmatized = False
@@ -695,10 +710,11 @@ def word_prob_solver(text):
 			text = text.replace(h_noun,h_noun_lem)
 			is_h_lemmatized = True
 		h_lem.update([h_noun_lem])
+	all_h = deepcopy(h)
 	h = list(h_lem)
 	if is_h_lemmatized:
 		document = nlp(text)
-		print(text)
+		# print(text)
 	sentences,numbers = get_numbers(document)
 	NPs,et = get_noun_phrases_entities(h,sentences,tree_parser)
 	et = filter_et(et,sentences,numbers)
@@ -706,13 +722,14 @@ def word_prob_solver(text):
 	ex = get_ex(document2,sentences,h)
 	numt = get_numt(et,numbers)
 	process_bare_num(numbers,sentences,numt,et,h)
-	vt = get_verbs(et+[ex],dep_parser,nlp)
+	vt = get_verbs(et+[ex],non_lem_sents,dep_parser,nlp)
 	vx = vt[-1]
 	del vt[-1]
 	at,ax = get_attributes(et,ex,dep_parser)
-	fragments = get_fragments(et,numt,vt,at,ex,vx,ax,sentences)
+	fragments = get_fragments(et,numt,vt,at,ex,vx,ax,sentences,non_lem_sents)
 	assert len(fragments) == len(sentences)
-	ct = get_containers(fragments,h,dep_parser,nlp)
+	ct = get_containers(fragments,all_h,dep_parser,nlp)
+	print("final fragments :","\n")
 	for fragment in fragments:
 		print(fragment,"\n")
 	fragx = fragments[-1]
@@ -724,9 +741,7 @@ def word_prob_solver(text):
 	equations = build_equations(states)
 	solutions = solve_equations(equations)
 	answer = get_answer(solutions,states,fragments,fragx,orig_text,nlp)
-	print("\n","---------------------------","\n")
-	print("Que: ",orig_text,"\n")
-	print("Ans: ",answer,"\n")
+	return answer
 
 if __name__ == "__main__":
 	text = 'Joan found 70 seashells on the beach . she gave some of her seashells to Sam. She has 27 seashell . How many seashells did she give to Sam ?'
@@ -737,9 +752,7 @@ if __name__ == "__main__":
 	text = 'There are 22 walnut trees currently in the park . Park workers will plant walnut trees today . When the workers are finished there will be 55 walnut trees in the park . How many walnut trees did the workers plant today ?'
 	text = "There are 4 walnut trees currently in the park . Park workers will plant 6 walnut trees today . How many walnut trees will the park have when the workers are finished ? "
 	text = 'Joan went to 4 football games this year. She went to 9 games last year. How many football games did Joan go?'
-	text = 'Mike had 34 peaches at his roadside fruit dish . He went to the orchard and picked peaches to stock up . There are now 86 peaches . how many did he pick ? '
 	text = 'Sam had 9 dimes in his bank . His dad gave him 7 dimes . How many dimes does Sam have now ? '
-	text = "Alyssa 's dog had puppies . She gave 7 to her friends . She now has 5 puppies . How many puppies did she have to start with ? "
 	text = "A restaurant served 9 pizzas during lunch and 6 during dinner today . How many pizzas were served today ? "
 	text = "A restaurant served 9 pizzas during lunch and 6 during dinner today . How many pizzas were served today during lunch? "
 	text = "Sandy grew 6 carrots . Sam grew 3 carrots . How many carrots did they grow in total ? "
@@ -747,6 +760,9 @@ if __name__ == "__main__":
 	text = "Sally found 9 seashells . Tom found 7 seashells and Jessica found 5 seashells on the beach . How many seashells did they find together ? "
 	text = "Joan has 9 blue balloons . Sally has 5 blue balloons and Jessica has 2 blue balloons . How many blue balloons do they have in total ? "
 	text = "Melanie had 7 dimes in her bank . Her dad gave her 8 dimes and her mother gave her 4 dimes . How many dimes does Melanie have now ? "
+	text = "Keith has 20 books . Jason has 21 books . How many books do they have together ? "
+	text = "Dan grew 42 turnips and 38 cantelopes . Jessica grew 47 turnips . How many turnips did they grow in total ? "
+	text = 'Mike had 34 peaches at his roadside fruit dish . He went to the orchard and picked peaches to stock up . There are now 86 peaches . how many did he pick ? '
 	# TODO
 	# text = 'Mary is baking a cake . The recipe wants 8 cups of flour . She already put in 2 cups . How many cups does she need to add ? '
 	# text = 'Sara has 31 red and 15 green balloons . Sandy has 24 red balloons . How many red balloons do they have in total ? '
@@ -756,4 +772,8 @@ if __name__ == "__main__":
 	# text = 'There were 28 bales of hay in the barn . Tim stacked bales in the barn today . There are now 54 bales of hay in the barn . How many bales did he store in the barn ? '
 	# text = "Sara 's high school played 12 basketball games this year . The team won most of their games . They were defeated during 4 games . How many games did they win ? "
 	# text = "Tim 's cat had kittens . He gave 3 to Jessica and 6 to Sara . He now has 9 kittens . How many kittens did he have to start with ?"
-	word_prob_solver(text)
+	# text = "Alyssa 's dog had puppies . She gave 7 to her friends . She now has 5 puppies . How many puppies did she have to start with ? "
+	answer = word_prob_solver(text)
+	print("\n","---------------------------","\n")
+	print("Que: ",text,"\n")
+	print("Ans: ",answer,"\n")

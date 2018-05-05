@@ -1,6 +1,7 @@
 from pynlp import StanfordCoreNLP
 import spacy
 from neuralcoref import Coref
+from helper import HiddenPrints
 
 spacy_parser = spacy.load('en')
 
@@ -23,7 +24,7 @@ def split_parts(first_part,is_first_part):
 			verb_str = str(token.text)
 			break
 	if not has_verb and is_first_part:
-		print("No Verb found in first part")
+		print("no verb found in first part")
 		return P1,V1,A1,Pr1
 	elif not has_verb and not is_first_part:
 		after_verb = first_part
@@ -47,7 +48,7 @@ def split_parts(first_part,is_first_part):
 	return P1,V1,A1,Pr1
 
 def resolve_conjs(text):
-	print("Resolving Conjunctions...")
+	print("resolving conjunctions...")
 	document = nlp(text)
 	document2 = spacy_parser(text)
 	has_conj = False
@@ -93,7 +94,7 @@ def resolve_conjs(text):
 	return first_part_new,second_part_new
 
 def resolve_dollars(text):
-	print("Resolving Dollars...")
+	print("resolving dollars...")
 	if "$" not in text:
 		return text
 	parts = text.split()
@@ -106,18 +107,19 @@ def resolve_dollars(text):
 	return processed_text.strip()
 
 def resolve_corefs(text):
-	print("Resolving Co-Refs...")
+	print("resolving pronoun co-refs...")
 	document = nlp(text)
-	coref = Coref()
+	with HiddenPrints():
+		coref = Coref()
 	context = ""
 	for sentence in document:
-		print(str(sentence))
+		# print(str(sentence))
 		if "they " in str(sentence):
 			context += " "+str(sentence).strip()
 			continue
 		clusters = coref.one_shot_coref(utterances=str(sentence).strip(), context=context)
 		resolved_utterance_text = coref.get_resolved_utterances()
-		print(resolved_utterance_text)
+		# print(resolved_utterance_text)
 		context += " ".join(resolved_utterance_text).strip()
 	return context
 
