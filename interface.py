@@ -9,7 +9,13 @@ def interface():
 			print("exiting..")
 			break
 		print("")
-		answer = word_prob_solver(question)
+		try:
+			answer = word_prob_solver(question)
+		except Exception as e:
+			print(str(e))
+			answer = "Failed to Compute the Answer"
+		if not answer:
+			answer = "Failed to Compute the Answer"
 		# print("\n","---------------------------","\n")
 		# print("Que: ",question,"\n")
 		print(bcolors.WARNING+bcolors.BOLD+"\nAns: ",str(answer)+bcolors.ENDC,"\n")
