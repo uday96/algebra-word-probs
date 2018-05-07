@@ -362,9 +362,9 @@ def verb_category(verb,nlp):
 	dv = nlp(verb)
 	verb_lem = dv[0][0].lemma
 	OBS_verbs = ["have","are","be"]
-	POS_verbs = ["go","pick","grow","find"]
+	POS_verbs = ["go","grow","find"]
 	NEG_TR_verbs = ["give","place"]
-	POS_TR_verbs = ["get"]
+	POS_TR_verbs = ["get","pick"]
 	DESTROY_verbs = ["cut"]
 	CONSTRUCT_verbs = ["plant","serve"]
 	if verb_lem in OBS_verbs:
@@ -419,15 +419,36 @@ def get_states(fragments,verb_cats,ex,ax):
 						if ct_et["E"] == fragment[1] and ct_et["A"] == fragment[5]:
 							ct_et["N"] += "-"+fragment[3]
 							break
-				if fragment[6][1].lower() not in state:
-					state[fragment[6][1].lower()] = [{"N":initialiser+"+"+fragment[3],"E":fragment[1],"A":fragment[5]}]
+				if fragment[6][1].lower() != fragment[6][0].lower():
+					if fragment[6][1].lower() not in state:
+						state[fragment[6][1].lower()] = [{"N":initialiser+"+"+fragment[3],"E":fragment[1],"A":fragment[5]}]
+						initialiser += "0"
+					else:
+						ct_state_ets = state[fragment[6][1].lower()]
+						for ct_et in ct_state_ets:
+							if ct_et["E"] == fragment[1] and ct_et["A"] == fragment[5]:
+								ct_et["N"] += "+"+fragment[3]
+								break
+			elif vcat == "POS_TR":
+				if fragment[6][0].lower() not in state:
+					state[fragment[6][0].lower()] = [{"N":initialiser+"+"+fragment[3],"E":fragment[1],"A":fragment[5]}]
 					initialiser += "0"
 				else:
-					ct_state_ets = state[fragment[6][1].lower()]
+					ct_state_ets = state[fragment[6][0].lower()]
 					for ct_et in ct_state_ets:
 						if ct_et["E"] == fragment[1] and ct_et["A"] == fragment[5]:
 							ct_et["N"] += "+"+fragment[3]
 							break
+				if fragment[6][1].lower() != fragment[6][0].lower():
+					if fragment[6][1].lower() not in state:
+						state[fragment[6][1].lower()] = [{"N":initialiser+"-"+fragment[3],"E":fragment[1],"A":fragment[5]}]
+						initialiser += "0"
+					else:
+						ct_state_ets = state[fragment[6][1].lower()]
+						for ct_et in ct_state_ets:
+							if ct_et["E"] == fragment[1] and ct_et["A"] == fragment[5]:
+								ct_et["N"] += "-"+fragment[3]
+								break
 			elif vcat == "DESTROY":
 				if fragment[6][0].lower() not in state:
 					state[fragment[6][0].lower()] = [{"N":initialiser+"-"+fragment[3],"E":fragment[1],"A":fragment[5]}]
@@ -763,7 +784,7 @@ if __name__ == "__main__":
 	text = "Keith has 20 books . Jason has 21 books . How many books do they have together ? "
 	text = "Dan grew 42 turnips and 38 cantelopes . Jessica grew 47 turnips . How many turnips did they grow in total ? "
 	text = 'Mike had 34 peaches at his roadside fruit dish . He went to the orchard and picked peaches to stock up . There are now 86 peaches . how many did he pick ? '
-	text = "Tom has 9 yellow balloons and Sara has 8 yellow balloons . How many yellow balloons do they have in total ? "
+	# text = "Tom has 9 yellow balloons and Sara has 8 yellow balloons . How many yellow balloons do they have in total ? "
 	# TODO
 	# text = 'Mary is baking a cake . The recipe wants 8 cups of flour . She already put in 2 cups . How many cups does she need to add ? '
 	# text = 'Sara has 31 red and 15 green balloons . Sandy has 24 red balloons . How many red balloons do they have in total ? '

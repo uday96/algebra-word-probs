@@ -168,6 +168,7 @@ if __name__ == "__main__":
 	text = 'Sara has 31 red and 15 green balloons . Sandy has 24 red balloons . How many red balloons do they have in total ? '
 	text = "Mike had 34 peaches at his roadside fruit dish . He went to the orchard and picked peaches to stock up . There are now 86 peaches . how many did he pick ? "
 	text = "Tom has 9 yellow balloons and Sara has 8 yellow balloons . How many yellow balloons do they have in total ? "
+	text = "Alyssa loves eating fruits . Alyssa paid $12 for grapes , and $9 for cherries . In total , how much money did Alyssa spend ? "
 	# text = 'Jason found 49 seashells and 48 starfish on the beach . He gave 13 of the seashells to Tim . How many seashells does Jason now have ? '
 	# text = 'Liz had 9 black kittens. She gave some of her kittens to Joan. Joan has now 11 kittens. Liz has 5 kittens left and 3 has spots. How many kittens did Joan get?'
 	processed_text = preprocess_text(text)
