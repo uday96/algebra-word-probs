@@ -4,7 +4,7 @@ from nltk.parse.stanford import StanfordDependencyParser
 from nltk.parse.stanford import StanfordParser
 from nltk.tree import *
 from preprocess import preprocess_text
-import re
+import re, json
 from copy import deepcopy
 
 def chunk_tree_to_sent(tree, concat=' '):
@@ -284,6 +284,8 @@ def get_containers(fragments,h,dep_parser,nlp):
 	ct=[]
 	last_ct="$"
 	is_loc_related = False
+	loc_ct = None
+	ignore = ["how","now","total"]
 	for fragment in fragments:
 		result = dep_parser.raw_parse(fragment[0])
 		ct1="$"
@@ -294,7 +296,7 @@ def get_containers(fragments,h,dep_parser,nlp):
 		for parse in result:
 			for dep in list(parse.triples()):
 				if dep[1] == "nsubj" and dep[0][0] == fragment[4] and not bool_there_is:
-					if ct1 == "$" and dep[2][0] not in h:
+					if ct1 == "$" and dep[2][0] not in h and dep[2][0].lower() not in ignore:
 						ct1 = dep[2][0]
 						last_ct = ct1
 				elif dep[1] == "nmod:poss" and dep[0][0] == ct1 and not bool_there_is:
@@ -305,10 +307,14 @@ def get_containers(fragments,h,dep_parser,nlp):
 					if ct1 == "$" and dep[0][0] not in h:
 						ct1 = dep[0][0]
 						last_ct = ct1
+						loc_ct = ct1
 						is_loc_related = True
 				elif dep[1] == "case" and dep[2][0] == "in" and is_loc_related and "how many" in fragment[0].lower():
-					if ct1 == "$" and dep[0][0] not in h:
+					if ct1 == "$" and dep[0][0] not in h and dep[0][0].lower() not in ignore:
 						ct1 = dep[0][0]
+						last_ct = ct1
+					elif ct1 == "$" and loc_ct:
+						ct1 = loc_ct
 						last_ct = ct1
 				elif dep[1] == "case" and dep[2][0] == "by":
 					if ct1 == "$" and dep[0][0] not in h:
@@ -330,7 +336,7 @@ def get_containers(fragments,h,dep_parser,nlp):
 						ct2 = dep[2][0]
 						# last_ct = ct2
 				elif dep[1] == "advmod" and dep[0][0] == fragment[4]:
-					if ct2 == "$" and dep[2][0] not in h and dep[2][0].lower() != "how" and dep[2][0].lower() != "now":
+					if ct2 == "$" and dep[2][0] not in h and dep[2][0].lower() not in ignore:
 						ct2 = dep[2][0]
 						# last_ct = ct2
 				elif dep[1] == "xcomp" and dep[0][0] == fragment[4]:
@@ -357,28 +363,15 @@ def get_containers(fragments,h,dep_parser,nlp):
 	return ct
 
 #Sentence Verb Categorization
-def verb_category(verb,nlp):
+def verb_category(verb,nlp,verb_cats_json):
 	verb = verb.lower().strip()
 	dv = nlp(verb)
-	verb_lem = dv[0][0].lemma
-	OBS_verbs = ["have","are","be"]
-	POS_verbs = ["go","grow","find"]
-	NEG_TR_verbs = ["give","place"]
-	POS_TR_verbs = ["get","pick"]
-	DESTROY_verbs = ["cut"]
-	CONSTRUCT_verbs = ["plant","serve"]
-	if verb_lem in OBS_verbs:
-		return "OBS"
-	elif verb_lem in POS_verbs:
-		return "POS"
-	elif verb_lem in NEG_TR_verbs:
-		return "NEG_TR"
-	elif verb_lem in POS_TR_verbs:
-		return "POS_TR"
-	elif verb_lem in DESTROY_verbs:
-		return "DESTROY"
-	elif verb_lem in CONSTRUCT_verbs:
-		return "CONSTRUCT"
+	verb_lem = dv[0][0].lemma.lower()
+	if verb_lem in verb_cats_json:
+		return verb_cats_json[verb_lem]
+	else:
+		print("Error: Verb Category not found")
+		return None
 
 def get_states(fragments,verb_cats,ex,ax):
 	#State Progression
@@ -398,6 +391,16 @@ def get_states(fragments,verb_cats,ex,ax):
 					for ct_et in ct_state_ets:
 						if ct_et["E"] == fragment[1] and ct_et["A"] == fragment[5]:
 							ct_et["N"] = fragment[3]
+							break
+			elif vcat == "NEG":
+				if fragment[6][0].lower() not in state:
+					state[fragment[6][0].lower()] = [{"N":initialiser+"-"+fragment[3],"E":fragment[1],"A":fragment[5]}]
+					initialiser += "0"
+				else:
+					ct_state_ets = state[fragment[6][0].lower()]
+					for ct_et in ct_state_ets:
+						if ct_et["E"] == fragment[1] and ct_et["A"] == fragment[5]:
+							ct_et["N"] += "-"+fragment[3]
 							break
 			elif vcat == "POS":
 				if fragment[6][0].lower() not in state:
@@ -459,15 +462,16 @@ def get_states(fragments,verb_cats,ex,ax):
 						if ct_et["E"] == fragment[1] and ct_et["A"] == fragment[5]:
 							ct_et["N"] += "-"+fragment[3]
 							break
-				if fragment[6][1].lower() not in state:
-					state[fragment[6][1].lower()] = [{"N":initialiser+"-"+fragment[3],"E":fragment[1],"A":fragment[5]}]
-					initialiser += "0"
-				else:
-					ct_state_ets = state[fragment[6][1].lower()]
-					for ct_et in ct_state_ets:
-						if ct_et["E"] == fragment[1] and ct_et["A"] == fragment[5]:
-							ct_et["N"] += "-"+fragment[3]
-							break
+				if fragment[6][1].lower() != fragment[6][0].lower():
+					if fragment[6][1].lower() not in state:
+						state[fragment[6][1].lower()] = [{"N":initialiser+"-"+fragment[3],"E":fragment[1],"A":fragment[5]}]
+						initialiser += "0"
+					else:
+						ct_state_ets = state[fragment[6][1].lower()]
+						for ct_et in ct_state_ets:
+							if ct_et["E"] == fragment[1] and ct_et["A"] == fragment[5]:
+								ct_et["N"] += "-"+fragment[3]
+								break
 			elif vcat == "CONSTRUCT":
 				if fragment[6][0].lower() not in state:
 					state[fragment[6][0].lower()] = [{"N":initialiser+"+"+fragment[3],"E":fragment[1],"A":fragment[5]}]
@@ -478,15 +482,16 @@ def get_states(fragments,verb_cats,ex,ax):
 						if ct_et["E"] == fragment[1] and ct_et["A"] == fragment[5]:
 							ct_et["N"] += "+"+fragment[3]
 							break
-				if fragment[6][1].lower() not in state:
-					state[fragment[6][1].lower()] = [{"N":initialiser+"+"+fragment[3],"E":fragment[1],"A":fragment[5]}]
-					initialiser += "0"
-				else:
-					ct_state_ets = state[fragment[6][1].lower()]
-					for ct_et in ct_state_ets:
-						if ct_et["E"] == fragment[1] and ct_et["A"] == fragment[5]:
-							ct_et["N"] += "+"+fragment[3]
-							break
+				if fragment[6][1].lower() != fragment[6][0].lower():
+					if fragment[6][1].lower() not in state:
+						state[fragment[6][1].lower()] = [{"N":initialiser+"+"+fragment[3],"E":fragment[1],"A":fragment[5]}]
+						initialiser += "0"
+					else:
+						ct_state_ets = state[fragment[6][1].lower()]
+						for ct_et in ct_state_ets:
+							if ct_et["E"] == fragment[1] and ct_et["A"] == fragment[5]:
+								ct_et["N"] += "+"+fragment[3]
+								break
 		states.append(state)
 	print("final states: ","\n")
 	for state in states:
@@ -503,7 +508,8 @@ def init_parsers():
 	annotators = "tokenize, ssplit, pos, lemma, ner, parse, dcoref"
 	options = {}
 	nlp = StanfordCoreNLP(annotators=annotators, options=options)
-	return nlp,spacy_parser,dep_parser,tree_parser
+	verb_cats_json = json.load(open("verb_cats.json","r"))
+	return nlp,spacy_parser,dep_parser,tree_parser,verb_cats_json
 
 def build_equations(states):
 	print("building equations...")
@@ -610,7 +616,7 @@ def set_inits_zero(ans):
 		ans = ans.replace(j_token,"")
 	return ans
 
-def get_answer(solutions,states,fragments,fragx,orig_text,nlp):
+def get_answer(solutions,states,fragments,fragx,orig_text,nlp,verb_cats_json):
 	print("getting answer...")
 	ctx1,ctx2 = fragx[6]
 	ex = fragx[1]
@@ -618,7 +624,7 @@ def get_answer(solutions,states,fragments,fragx,orig_text,nlp):
 	vx = fragx[4]
 	dvx = nlp(vx)
 	vx_lem = dvx[0][0].lemma
-	vx_cat = verb_category(vx,nlp)
+	vx_cat = verb_category(vx,nlp,verb_cats_json)
 	ans = ""
 	bool_get_init = False
 	bool_they_total = False
@@ -686,7 +692,7 @@ def get_answer(solutions,states,fragments,fragx,orig_text,nlp):
 			vt = fragment[4]
 			dvt = nlp(vt)
 			vt_lem = dvt[0][0].lemma
-			vt_cat = verb_category(vt,nlp)
+			vt_cat = verb_category(vt,nlp,verb_cats_json)
 			if vt_cat is None:
 				continue
 			opposite_verbs = bool_opposite_verbs(vx_cat,vt_cat)
@@ -716,7 +722,7 @@ def get_answer(solutions,states,fragments,fragx,orig_text,nlp):
 
 def word_prob_solver(text):
 	orig_text = text
-	nlp,spacy_parser,dep_parser,tree_parser = init_parsers()
+	nlp,spacy_parser,dep_parser,tree_parser,verb_cats_json = init_parsers()
 	text = preprocess_text(text)
 	# print(text)
 	document = nlp(text)
@@ -757,11 +763,11 @@ def word_prob_solver(text):
 	del fragments[-1]
 	verb_cats = []
 	for fragment in fragments:
-		verb_cats.append(verb_category(fragment[4],nlp))
+		verb_cats.append(verb_category(fragment[4],nlp,verb_cats_json))
 	states = get_states(fragments,verb_cats,ex,ax)
 	equations = build_equations(states)
 	solutions = solve_equations(equations)
-	answer = get_answer(solutions,states,fragments,fragx,orig_text,nlp)
+	answer = get_answer(solutions,states,fragments,fragx,orig_text,nlp,verb_cats_json)
 	return answer
 
 if __name__ == "__main__":
@@ -775,7 +781,6 @@ if __name__ == "__main__":
 	text = 'Joan went to 4 football games this year. She went to 9 games last year. How many football games did Joan go?'
 	text = 'Sam had 9 dimes in his bank . His dad gave him 7 dimes . How many dimes does Sam have now ? '
 	text = "A restaurant served 9 pizzas during lunch and 6 during dinner today . How many pizzas were served today ? "
-	text = "A restaurant served 9 pizzas during lunch and 6 during dinner today . How many pizzas were served today during lunch? "
 	text = "Sandy grew 6 carrots . Sam grew 3 carrots . How many carrots did they grow in total ? "
 	text = "Tom has 9 yellow balloons and Sara has 8 yellow balloons . How many yellow balloons do they have in total ? "
 	text = "Sally found 9 seashells . Tom found 7 seashells and Jessica found 5 seashells on the beach . How many seashells did they find together ? "
@@ -784,17 +789,19 @@ if __name__ == "__main__":
 	text = "Keith has 20 books . Jason has 21 books . How many books do they have together ? "
 	text = "Dan grew 42 turnips and 38 cantelopes . Jessica grew 47 turnips . How many turnips did they grow in total ? "
 	text = 'Mike had 34 peaches at his roadside fruit dish . He went to the orchard and picked peaches to stock up . There are now 86 peaches . how many did he pick ? '
-	# text = "Tom has 9 yellow balloons and Sara has 8 yellow balloons . How many yellow balloons do they have in total ? "
+	text = "Tom has 9 yellow balloons and Sara has 8 yellow balloons . How many yellow balloons do they have in total ? "
+	text = "There are 2 pencils in the drawer . Tim placed 3 pencils in the drawer . How many pencils are now there in total ? "
 	# TODO
 	# text = 'Mary is baking a cake . The recipe wants 8 cups of flour . She already put in 2 cups . How many cups does she need to add ? '
 	# text = 'Sara has 31 red and 15 green balloons . Sandy has 24 red balloons . How many red balloons do they have in total ? '
-	# text = "There are 2 pencils in the drawer . Tim placed 3 pencils in the drawer . How many pencils are now there in total ? "
 	# TODO - coref prob
 	# text = 'There were 28 bales of hay in the barn . Tim stacked bales in the barn today . There are now 54 bales of hay in the barn . How many bales did he store in the barn ? '
 	# text = "Tim 's cat had kittens . He gave 3 to Jessica and 6 to Sara . He now has 9 kittens . How many kittens did he have to start with ?"
 	# text = "Alyssa 's dog had puppies . She gave 7 to her friends . She now has 5 puppies . How many puppies did she have to start with ? "
-	#TODO - ct map
+	# TODO - ct map
 	# text = "Sara 's high school played 12 basketball games this year . The team won most of their games . They were defeated during 4 games . How many games did they win ? "
+	# TODO - during
+	# text = "A restaurant served 9 pizzas during lunch and 6 during dinner today . How many pizzas were served today during lunch? "
 	answer = word_prob_solver(text)
 	print("\n","---------------------------","\n")
 	print("Que: ",text,"\n")
