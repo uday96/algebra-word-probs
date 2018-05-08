@@ -1,3 +1,23 @@
 There were 28 bales of hay in the barn . Tim stacked bales in the barn today . There are now 54 bales of hay in the barn . How many bales did he store in the barn ? 
-local variable 'e' referenced before assignment
-
+Mary is baking a cake . The recipe wants 8 cups of flour . She already put in 2 cups . How many cups does she need to add ? 
+Sara 's high school played 12 basketball games this year . The team won most of their games . They were defeated during 4 games . How many games did they win ? 
+There were 6 roses in the vase . Mary cut some roses from her flower garden . There are now 16 roses in the vase . How many roses did Mary cut ? 
+Benny picked 2 apples and Dan picked 9 apples from the apple tree . How many apples were picked in total ? 
+Sally found 9 seashells , Tom found 7 seashells , and Jessica found 5 seashells on the beach . How many seashells did they find together ? 
+Tim 's cat had kittens . He gave 3 to Jessica and 6 to Sara . He now has 9 kittens . How many kittens did he have to start with ?
+Joan has 9 blue balloons , Sally has 5 blue balloons , and Jessica has 2 blue balloons . How many blue balloons do they have in total ? 
+A restaurant served 5 cakes during lunch and 6 during dinner today . The restaurant served 3 cakes yesterday . How many cakes were served in total ? 
+Melanie picked 4 plums . Dan picked 9 plums and Sally picked 3 plums from the plum tree . How many plums were picked in total ?
+There are 7 dogwood trees currently in the park . Park workers will plant 3 dogwood trees today and 2 dogwood trees tomorrow . How many dogwood trees will the park have when the workers are finished ? 
+Jason has 43 blue and 16 red marbles . Tom has 24 blue marbles . How many blue marbles do they have in all ? 
+Sara picked 45 pears and Sally picked 11 pears from the pear tree . How many pears were picked in total ? 
+Jason had 49 quarters in his bank . His dad gave him 25 quarters . How many quarters does he have now ? 
+Sara has 31 red and 15 green balloons . Sandy has 24 red balloons . How many red balloons do they have in total ? 
+Joan picked 37 oranges and Sara picked 10 oranges . Alyssa picked 30 pears . How many oranges were picked in total ? 
+Fred went to 36 basketball games this year but missed 35 games. He went to 11 games last year . How many basketball games did Fred go to in total ? 
+Sam had 49 pennies and 24 nickels in his bank . His dad gave him 39 nickels and 31 quarters . How many nickels does he have now ?
+---------
+Jason went to 11 football games this month . He went to 17 games last month , and plans to go to 16 games next month . How many games will he attend in all ? 
+Mike has 35 books in his library . He bought several books at a yard sale over the weekend . He now has 56 books in his library . How many books did he buy at the yard sale ? 
+Joan purchased a basketball game for $ 5.20 , and a racing game for $ 4.23 . How much did Joan spend on video games ? 
+Joan decided to sell all of her old books . She gathered up 33 books to sell . She sold 26 books in a yard sale . How many books does Joan now have ? 

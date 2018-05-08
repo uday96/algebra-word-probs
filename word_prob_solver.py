@@ -37,6 +37,12 @@ def get_numbers(document):
 		a = [[str(entity),str(sentence),index] for entity in sentence.entities if str(entity.type) == 'NUMBER']
 		numbers.extend(a)
 		sentences.append(str(sentence))
+	if len(numbers) == 0:
+		for sid in range(len(sentences)):
+			sentence = sentences[sid]
+			for token in sentence.split():
+				if check_int(token):
+					numbers.append([token,sentence,sid])
 	return sentences,numbers
 
 def get_num_dep_nouns(document,dep_parser):
@@ -285,7 +291,7 @@ def get_containers(fragments,h,dep_parser,nlp):
 	last_ct="$"
 	is_loc_related = False
 	loc_ct = None
-	ignore = ["how","now","total"]
+	ignore = ["how","now","total","all"]
 	for fragment in fragments:
 		result = dep_parser.raw_parse(fragment[0])
 		ct1="$"
@@ -629,9 +635,10 @@ def get_answer(solutions,states,fragments,fragx,orig_text,nlp,verb_cats_json):
 	bool_get_init = False
 	bool_they_total = False
 	NNPs = set([])
+	combines = ["total","together","all"]
 	if "start" in fragx[0].lower() or "begin" in fragx[0].lower():
 		bool_get_init = True
-	if ctx1 == "they" and (ctx2 == "total" or ctx2 == "together"):
+	if ctx1 == "they" and (ctx2 in combines):
 		bool_they_total = True
 		ddp = nlp(orig_text)
 		for dds in ddp:
@@ -673,14 +680,18 @@ def get_answer(solutions,states,fragments,fragx,orig_text,nlp,verb_cats_json):
 			dvt = nlp(vt)
 			vt_lem = dvt[0][0].lemma
 			if not bool_they_total:
-				if ctx1 != ctx2:
-					if ctx1 == fragment[6][0] and ctx2 == fragment[6][1] and vx_lem == vt_lem and ex == fragment[1] and ax == fragment[5]:
-						ans += "+"+fragment[3]
-				else:
+				if vx_cat == "POS" or vx_cat == "NEG":
 					if ctx1 == fragment[6][0] and vx_lem == vt_lem and ex == fragment[1] and ax == fragment[5]:
 						ans += "+"+fragment[3]
-					elif ctx1 != fragment[6][0] and ctx2 == fragment[6][1] and vx_lem == vt_lem and ex == fragment[1] and ax == fragment[5] and vx_cat in ["CONSTRUCT","DESTROY"]:
-						ans += "+"+fragment[3]
+				else:
+					if ctx1 != ctx2:
+						if ctx1 == fragment[6][0] and ctx2 == fragment[6][1] and vx_lem == vt_lem and ex == fragment[1] and ax == fragment[5]:
+							ans += "+"+fragment[3]
+					else:
+						if ctx1 == fragment[6][0] and vx_lem == vt_lem and ex == fragment[1] and ax == fragment[5]:
+							ans += "+"+fragment[3]
+						elif ctx1 != fragment[6][0] and ctx2 == fragment[6][1] and vx_lem == vt_lem and ex == fragment[1] and ax == fragment[5] and vx_cat in ["CONSTRUCT","DESTROY"]:
+							ans += "+"+fragment[3]
 			else:
 				for nnp in NNPs:
 					if nnp == fragment[6][0] and vx_lem == vt_lem and ex == fragment[1] and ax == fragment[5]:
@@ -771,37 +782,42 @@ def word_prob_solver(text):
 	return answer
 
 if __name__ == "__main__":
-	text = 'Joan found 70 seashells on the beach . she gave some of her seashells to Sam. She has 27 seashell . How many seashells did she give to Sam ?'
-	text = 'Jason found 49 seashells and 48 starfish on the beach . He gave 13 of the seashells to Tim . How many seashells does Jason now have ? '
-	text = 'Liz had 9 black kittens. She gave some of her kittens to Joan. Joan has now 11 kittens. Liz has 5 kitten left and 3 has spots. How many kittens did Joan get?'
-	text = 'Liz had 9 black kittens. She gave some of her kittens to Joan. Joan has now 11 kittens. Liz has 5 kittens left and 3 has spots. How many kittens did Liz give?'
-	text = 'There are 42 walnut trees and 12 orange trees currently in the park. Park workers cut down 13 walnut trees that were damaged. How many walnut trees will be in the park when the workers are finished?'
-	text = 'There are 22 walnut trees currently in the park . Park workers will plant walnut trees today . When the workers are finished there will be 55 walnut trees in the park . How many walnut trees did the workers plant today ?'
-	text = "There are 4 walnut trees currently in the park . Park workers will plant 6 walnut trees today . How many walnut trees will the park have when the workers are finished ? "
-	text = 'Joan went to 4 football games this year. She went to 9 games last year. How many football games did Joan go?'
-	text = 'Sam had 9 dimes in his bank . His dad gave him 7 dimes . How many dimes does Sam have now ? '
-	text = "A restaurant served 9 pizzas during lunch and 6 during dinner today . How many pizzas were served today ? "
-	text = "Sandy grew 6 carrots . Sam grew 3 carrots . How many carrots did they grow in total ? "
-	text = "Tom has 9 yellow balloons and Sara has 8 yellow balloons . How many yellow balloons do they have in total ? "
-	text = "Sally found 9 seashells . Tom found 7 seashells and Jessica found 5 seashells on the beach . How many seashells did they find together ? "
-	text = "Joan has 9 blue balloons . Sally has 5 blue balloons and Jessica has 2 blue balloons . How many blue balloons do they have in total ? "
-	text = "Melanie had 7 dimes in her bank . Her dad gave her 8 dimes and her mother gave her 4 dimes . How many dimes does Melanie have now ? "
-	text = "Keith has 20 books . Jason has 21 books . How many books do they have together ? "
-	text = "Dan grew 42 turnips and 38 cantelopes . Jessica grew 47 turnips . How many turnips did they grow in total ? "
-	text = 'Mike had 34 peaches at his roadside fruit dish . He went to the orchard and picked peaches to stock up . There are now 86 peaches . how many did he pick ? '
-	text = "Tom has 9 yellow balloons and Sara has 8 yellow balloons . How many yellow balloons do they have in total ? "
-	text = "There are 2 pencils in the drawer . Tim placed 3 pencils in the drawer . How many pencils are now there in total ? "
+	text = "Fred has 40 baseball cards . Keith bought 22 baseball cards from Fred . How many baseball cards does Fred have now ? "
 	# TODO
 	# text = 'Mary is baking a cake . The recipe wants 8 cups of flour . She already put in 2 cups . How many cups does she need to add ? '
+	# TODO - conj
+	# text = "Jason has 43 blue and 16 red marbles . Tom has 24 blue marbles . How many blue marbles do they have in all ? "
 	# text = 'Sara has 31 red and 15 green balloons . Sandy has 24 red balloons . How many red balloons do they have in total ? '
 	# TODO - coref prob
 	# text = 'There were 28 bales of hay in the barn . Tim stacked bales in the barn today . There are now 54 bales of hay in the barn . How many bales did he store in the barn ? '
 	# text = "Tim 's cat had kittens . He gave 3 to Jessica and 6 to Sara . He now has 9 kittens . How many kittens did he have to start with ?"
-	# text = "Alyssa 's dog had puppies . She gave 7 to her friends . She now has 5 puppies . How many puppies did she have to start with ? "
+	# text = "Jason had 49 quarters in his bank . His dad gave him 25 quarters . How many quarters does he have now ? "
 	# TODO - ct map
 	# text = "Sara 's high school played 12 basketball games this year . The team won most of their games . They were defeated during 4 games . How many games did they win ? "
 	# TODO - during
 	# text = "A restaurant served 9 pizzas during lunch and 6 during dinner today . How many pizzas were served today during lunch? "
+	# TODO - total
+	# text = "A restaurant served 5 cakes during lunch and 6 during dinner today . The restaurant served 3 cakes yesterday . How many cakes were served in total ? "
+	# text = "Melanie picked 4 plums . Dan picked 9 plums and Sally picked 3 plums from the plum tree . How many plums were picked in total ?"
+	# text = "Sara picked 45 pears and Sally picked 11 pears from the pear tree . How many pears were picked in total ? "
+	# text = "Joan picked 37 oranges and Sara picked 10 oranges . Alyssa picked 30 pears . How many oranges were picked in total ? "
+	# text = "Benny picked 2 apples and Dan picked 9 apples from the apple tree . How many apples were picked in total ? "
+	# TODO - preprocess
+	# text = "There are 7 dogwood trees currently in the park . Park workers will plant 3 dogwood trees today and 2 dogwood trees tomorrow . How many dogwood trees will the park have when the workers are finished ? "
+	# text = "Fred went to 36 basketball games this year but missed 35 games. He went to 11 games last year . How many basketball games did Fred go to in total ? "
+	# TODO - num & coref
+	# text = "Jason had 49 quarters in his bank . His dad gave him 25 quarters . How many quarters does he have now ? "
+	# text = "Sam had 49 pennies and 24 nickels in his bank . His dad gave him 39 nickels and 31 quarters . How many nickels does he have now ?"
+	# TODO - verb sim
+	# text = "Jason went to 11 football games this month . He went to 17 games last month and plans to go to 16 games next month . How many games will he attend in all ? "
+	# TODO - amod
+	# text = "Mike has 35 books in his library . He bought several books at a yard sale over the weekend . He now has 56 books in his library . How many books did he buy at the yard sale ? "
+	# TODO - currency and conj
+	# text = "Joan purchased a basketball game for $ 5.20 , and a racing game for $ 4.23 . How much did Joan spend on video games ? "
+	# TODO - unable to ignore noise
+	# text = "Joan decided to sell all of her old books . She gathered up 33 books to sell . She sold 26 books in a yard sale . How many books does Joan now have ? "
+	# TODO - ct detection
+	# text = "Fred has 40 baseball cards . Keith bought 22 of Fred's baseball cards . How many baseball cards does Fred have now ? "
 	answer = word_prob_solver(text)
 	print("\n","---------------------------","\n")
 	print("Que: ",text,"\n")
