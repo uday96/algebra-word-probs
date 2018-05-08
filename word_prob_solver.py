@@ -818,7 +818,7 @@ if __name__ == "__main__":
 	# TODO - unable to ignore noise
 	# text = "Joan decided to sell all of her old books . She gathered up 33 books to sell . She sold 26 books in a yard sale . How many books does Joan now have ? "
 	# TODO - ct detection
-	text = "Fred has 40 baseball cards . Keith bought 22 of Fred's baseball cards . How many baseball cards does Fred have now ? "
+	# text = "Fred has 40 baseball cards . Keith bought 22 of Fred's baseball cards . How many baseball cards does Fred have now ? "
 	answer = word_prob_solver(text)
 	print("\n","---------------------------","\n")
 	print("Que: ",text,"\n")
