@@ -246,18 +246,19 @@ def get_attributes(et,ex,dep_parser):
 	print("identifying ats...")
 	at = []
 	last_at = "$"
+	ignore = ["many","several","few"]
 	for e in et+[ex]:
 		result = dep_parser.raw_parse(str(e[0]))
 		flag = False
 		dep_tup = None
 		for parse in result:
 			for dep in list(parse.triples()):
-				if dep[1] == "amod" and dep[0][0]==e[1] and dep[2][0] != "many":
+				if dep[1] == "amod" and dep[0][0]==e[1] and dep[2][0].lower() not in ignore:
 					flag = True
 					at.append([str(dep[2][0]),e[1],e[2]])
 					last_at = str(dep[2][0])
 					break
-				elif dep[1] == "dep" and dep[2][0]==e[1] and dep[0][0] != "many":
+				elif dep[1] == "dep" and dep[2][0]==e[1] and dep[0][0].lower() not in ignore:
 					dep_tup = dep
 		if not flag and dep_tup:
 			flag = True
@@ -782,7 +783,7 @@ def word_prob_solver(text):
 	return answer
 
 if __name__ == "__main__":
-	text = "Fred has 40 baseball cards . Keith bought 22 baseball cards from Fred . How many baseball cards does Fred have now ? "
+	text = "Joan found 70 blue seashells and 30 red seashells on the beach . she gave few blue seashells to Sam. She has 27 blue seashell . How many blue seashells did she give to Sam ?"
 	# TODO
 	# text = 'Mary is baking a cake . The recipe wants 8 cups of flour . She already put in 2 cups . How many cups does she need to add ? '
 	# TODO - conj
@@ -817,7 +818,7 @@ if __name__ == "__main__":
 	# TODO - unable to ignore noise
 	# text = "Joan decided to sell all of her old books . She gathered up 33 books to sell . She sold 26 books in a yard sale . How many books does Joan now have ? "
 	# TODO - ct detection
-	# text = "Fred has 40 baseball cards . Keith bought 22 of Fred's baseball cards . How many baseball cards does Fred have now ? "
+	text = "Fred has 40 baseball cards . Keith bought 22 of Fred's baseball cards . How many baseball cards does Fred have now ? "
 	answer = word_prob_solver(text)
 	print("\n","---------------------------","\n")
 	print("Que: ",text,"\n")

@@ -1,33 +1,198 @@
 Joan found 70 seashells on the beach . she gave some of her seashells to Sam. She has 27 seashell . How many seashells did she give to Sam ?
+43
+
 There are 22 walnut trees currently in the park . Park workers will plant walnut trees today . When the workers are finished there will be 55 walnut trees in the park . How many walnut trees did the workers plant today ?
-Mike had 34 peaches at his roadside fruit dish . He went to the orchard and picked peaches to stock up . There are now 86 peaches . how many did he pick ? 
+33
+
+Mike had 34 peaches at his roadside fruit dish . He went to the orchard and picked peaches to stock up . There are now 86 peaches . how many did he pick ?
+52
+
 Joan went to 4 football games this year. She went to 9 games last year. How many football games did Joan go?
-Tom has 9 yellow balloons and Sara has 8 yellow balloons . How many yellow balloons do they have in total ? 
-There are 4 walnut trees currently in the park . Park workers will plant 6 walnut trees today . How many walnut trees will the park have when the workers are finished ? 
-Sam had 9 dimes in his bank . His dad gave him 7 dimes . How many dimes does Sam have now ? 
-Alyssa's dog had puppies . She gave 7 to her friends . She now has 5 puppies . How many puppies did Alyssa have to start with ? 
-A restaurant served 9 pizzas during lunch and 6 during dinner today . How many pizzas were served today ? 
-There are 2 pencils in the drawer . Tim placed 3 pencils in the drawer . How many pencils are now there in total ? 
-Joan found 6 seashells and Jessica found 8 seashells on the beach . How many seashells did they find together ? 
-Sandy grew 6 carrots . Sam grew 3 carrots . How many carrots did they grow in total ? 
-Sally found 9 seashells . Tom found 7 seashells and Jessica found 5 seashells on the beach . How many seashells did they find together ? 
-Joan has 9 blue balloons . Sally has 5 blue balloons and Jessica has 2 blue balloons . How many blue balloons do they have in total ? 
-Melanie had 7 dimes in her bank . Her dad gave her 8 dimes and her mother gave her 4 dimes . How many dimes does Melanie have now ? 
-Sara grew 4 onions . Sally grew 5 onions and Fred grew 9 onions . How many onions did they grow in all ? 
-Jason has 43 blue marbles and 16 red marbles . Tom has 24 blue marbles . How many blue marbles do they have in all ? 
-Sam found 18 seashells and Mary found 47 seashells on the beach . How many seashells did they find together ? 
-Jason grew 23 watermelons and 18 turnips . Nancy grew 28 watermelons . How many watermelons did they grow in total ? 
-There are 11 rulers and 34 crayons in the drawer . Tim placed 14 rulers in the drawer . How many rulers are now there in all ? 
-Keith has 20 books . Jason has 21 books . How many books do they have together ? 
-Tom found 15 seashells and Fred found 43 seashells on the beach . When they cleaned them , they discovered that 29 were cracked . How many seashells did they find together ? 
-Sara has 31 red balloons and 15 green balloons . Sandy has 24 red balloons . How many red balloons do they have in total ? 
-There are 33 pencils and 44 crayons in the drawer . Joan placed 27 pencils in the drawer . How many pencils are now there in total ? 
-Dan grew 42 turnips and 38 cantelopes . Jessica grew 47 turnips . How many turnips did they grow in total ? 
-There are 33 walnut trees currently in the park . Park workers will plant 44 walnut trees today . How many walnut trees will the park have when the workers are finished ? 
-Sara had 21 quarters in her bank . Her dad gave her 49 quarters . How many quarters does she have now ? 
-There are 41 pencils in the drawer . Mike placed 30 pencils in the drawer . How many pencils are now there in total ? 
-Joan has 10 books . Tom has 38 books . How many books do they have together ? 
-Joan has 40 blue balloons . Melanie has 41 blue balloons . How many blue balloons do they have in total ? 
-Fred grew 38 cantelopes . Tim grew 44 cantelopes . How many cantelopes did they grow in total ? 
-Sam went to 14 football games this year . He went to 29 games last year . How many football games did Sam go to in all ? 
-------
+13
+
+Tom has 9 yellow balloons and Sara has 8 yellow balloons . How many yellow balloons do they have in total ?
+17
+
+There are 4 walnut trees currently in the park . Park workers will plant 6 walnut trees today . How many walnut trees will the park have when the workers are finished ?
+10
+
+Sam had 9 dimes in his bank . His dad gave him 7 dimes . How many dimes does Sam have now ?
+16
+
+Alyssa's dog had puppies . She gave 7 to her friends . She now has 5 puppies . How many puppies did Alyssa have to start with ?
+12
+
+A restaurant served 9 pizzas during lunch and 6 during dinner today . How many pizzas were served today ?
+15
+
+There are 2 pencils in the drawer . Tim placed 3 pencils in the drawer . How many pencils are now there in total ?
+5
+
+Joan found 6 seashells and Jessica found 8 seashells on the beach . How many seashells did they find together ?
+14
+
+Sandy grew 6 carrots . Sam grew 3 carrots . How many carrots did they grow in total ?
+9
+
+Sally found 9 seashells . Tom found 7 seashells and Jessica found 5 seashells on the beach . How many seashells did they find together ?
+21
+
+Joan has 9 blue balloons . Sally has 5 blue balloons and Jessica has 2 blue balloons . How many blue balloons do they have in total ?
+16
+
+Melanie had 7 dimes in her bank . Her dad gave her 8 dimes and her mother gave her 4 dimes . How many dimes does Melanie have now ?
+19
+
+Sara grew 4 onions . Sally grew 5 onions and Fred grew 9 onions . How many onions did they grow in all ?
+18
+
+Jason has 43 blue marbles and 16 red marbles . Tom has 24 blue marbles . How many blue marbles do they have in all ?
+67
+
+Sam found 18 seashells and Mary found 47 seashells on the beach . How many seashells did they find together ?
+65
+
+Jason grew 23 watermelons and 18 turnips . Nancy grew 28 watermelons . How many watermelons did they grow in total ?
+51
+
+There are 11 rulers and 34 crayons in the drawer . Tim placed 14 rulers in the drawer . How many rulers are now there in all ?
+25
+
+Keith has 20 books . Jason has 21 books . How many books do they have together ?
+41
+
+Tom found 15 seashells and Fred found 43 seashells on the beach . When they cleaned them , they discovered that 29 were cracked . How many seashells did they find together ?
+58
+
+Sara has 31 red balloons and 15 green balloons . Sandy has 24 red balloons . How many red balloons do they have in total ?
+55
+
+Fred went to 36 basketball games this year , but missed 35 . He went to 11 games last year . How many basketball games did Fred go to in total ?
+47
+
+There are 33 pencils and 44 crayons in the drawer . Joan placed 27 pencils in the drawer . How many pencils are now there in total ?
+60
+
+Dan grew 42 turnips and 38 cantelopes . Jessica grew 47 turnips . How many turnips did they grow in total ?
+89
+
+There are 33 walnut trees currently in the park . Park workers will plant 44 walnut trees today . How many walnut trees will the park have when the workers are finished ?
+77
+
+Sara had 21 quarters in her bank . Her dad gave her 49 quarters . How many quarters does she have now ?
+70
+
+There are 41 pencils in the drawer . Mike placed 30 pencils in the drawer . How many pencils are now there in total ?
+71
+
+Joan has 10 books . Tom has 38 books . How many books do they have together ?
+48
+
+Joan has 40 blue balloons . Melanie has 41 blue balloons . How many blue balloons do they have in total ?
+81
+
+Fred grew 38 cantelopes . Tim grew 44 cantelopes . How many cantelopes did they grow in total ?
+82
+
+Sam went to 14 football games this year . He went to 29 games last year . How many football games did Sam go to in all ?
+43
+
+Mary found 18 seashells and Jessica found 41 seashells on the beach . How many seashells did they find together ?
+59
+
+Melanie had 19 dimes in her bank . Her dad gave her 39 dimes and her mother gave her 25 dimes . How many dimes does Melanie have now ?
+83
+
+Sally had 27 Pokemon cards . Dan gave her 41 new Pokemon cards . Sally bought 20 Pokemon cards . How many Pokemon cards does Sally have now ?
+88
+
+Mike has 35 books in his library . He bought several books at a yard sale over the weekend . He now has 56 books in his library . How many books did he buy at the yard sale ?
+21
+
+There are 53 maple trees currently in the park . Park workers will plant maple trees today . When the workers are finished there will be 64 maple trees in the park . How many maple trees did the workers plant today ?
+11
+
+Sally had 13 peaches at her roadside fruit dish . She went to the orchard and picked peaches to stock up . There are now 55 peaches . how many did she pick ?
+42
+
+Nancy grew 6 potatoes . Sandy grew 7 potatoes . How many potatoes did they grow in total ?
+13
+
+There are 9 crayons in the drawer . Benny placed 3 crayons in the drawer . How many crayons are now there in total ?
+12
+
+There are 5 oak trees currently in the park . Park workers will plant 4 oak trees today . How many oak trees will the park have when the workers are finished ?
+9
+
+A restaurant served 6 cakes during lunch and 9 during dinner today . How many cakes were served today ?
+15
+
+Joan has 8 orange balloons but lost 2 of them . How many orange balloons does Joan have now ?
+6
+
+Fred had 7 dimes in his bank . His sister borrowed 3 of his dimes . How many dimes does Fred have now ?
+4
+
+Joan 's cat had 8 kittens . She gave 2 to her friends . How many kittens does she have now ?
+6
+
+There are 34 dogwood trees currently in the park . Park workers will plant 49 dogwood trees today . How many dogwood trees will the park have when the workers are finished ?
+83
+
+There are 27 pencils in the drawer . Nancy placed 45 pencils in the drawer . How many pencils are now there in total ?
+72
+
+Tim has 22 books . Mike has 20 books . How many books do they have together ?
+42
+
+Sandy grew 51 pumpkins . Mike grew 23 pumpkins . How many pumpkins did they grow in total ?
+74
+
+Tim has 44 books . Sam has 52 books . How many books do they have together ?
+96
+
+There are 25 popular trees currently in the park . Park workers will plant 73 popular trees today . How many popular trees will the park have when the workers are finished ?
+98
+
+There are 54 scissors in the drawer . Keith placed 22 scissors in the drawer . How many scissors are now there in all ?
+76
+
+Sam has 110 books . Joan has 102 books . How many books do they have together ?
+212
+
+Melanie grew 139 turnips . Benny grew 113 turnips . How many turnips did they grow in all ?
+252
+
+There are 107 walnut trees currently in the park . Park workers will plant 104 walnut trees today . How many walnut trees will the park have when the workers are finished ?
+211
+
+There are 115 pencils in the drawer . Sara placed 100 pencils in the drawer . How many pencils are now there in all ?
+215
+
+Joan had 5 dimes in her bank . She spent 2 of her dimes . How many dimes does she have now ?
+3
+
+Mary had 7 nickels in her bank . Her dad gave her 5 nickels . How many nickels does Mary have now ?
+12
+
+Keith grew 6 turnips . Alyssa grew 9 turnips . How many turnips did they grow in all ?
+15
+
+Sally grew 6 carrots . Fred grew 4 carrots . How many carrots did they grow in all ?
+10
+
+There are 9 oak trees currently in the park . Park workers had to cut down 2 oak trees that were damaged . How many oak trees will the park have when the workers are finished ?
+7
+
+Joan has 9 blue balloons but lost 2 of them . How many blue balloons does Joan have now ?
+7
+
+Joan picked 43 apples from the orchard , and gave 27 apples to Melanie . How many apples does Joan have now ?
+16
+
+There are 46 rulers in the drawer . Tim took 25 rulers from the drawer . How many rulers are now in the drawer ?
+21
+
+There are 33 oak trees currently in the park . Park workers had to cut down 18 oak trees that were damaged . How many oak trees will be in the park when the workers are finished ?
+15
+
