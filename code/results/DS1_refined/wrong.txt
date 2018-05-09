@@ -1,0 +1,224 @@
+There were 28 bales of hay in the barn . Tim stacked bales in the barn today . There are now 54 bales of hay in the barn . How many bales did he store in the barn ?
+
+
+Mary is baking a cake . The recipe wants 8 cups of flour . She already put in 2 cups . How many cups does she need to add ?
+
+
+Sara 's high school played 12 basketball games this year . The team won most of their games . They were defeated during 4 games . How many games did they win ?
+
+
+There were 6 roses in the vase . Mary cut some roses from her flower garden . There are now 16 roses in the vase . How many roses did she cut ?
+'NoneType' object is not subscriptable
+
+Benny picked 2 apples and Dan picked 9 apples from the apple tree . How many apples were picked in total ?
+
+
+Tim 's cat had kittens . He gave 3 to Jessica and 6 to Sara . He now has 9 kittens . How many kittens did he have to start with ?
+'NoneType' object is not subscriptable
+
+A restaurant served 5 cakes during lunch and 6 during dinner today . The restaurant served 3 cakes yesterday . How many cakes were served in total ?
+
+
+Melanie picked 4 plums , Dan picked 9 plums , and Sally picked 3 plums from the plum tree . How many plums were picked in total ?
+
+
+There are 7 dogwood trees currently in the park . Park workers will plant 3 dogwood trees today and 2 dogwood trees tomorrow . How many dogwood trees will the park have when the workers are finished ?
+10
+
+Sara picked 45 pears and Sally picked 11 pears from the pear tree . How many pears were picked in total ?
+
+
+Jason had 49 quarters in his bank . His dad gave him 25 quarters . How many quarters does he have now ?
+25
+
+Joan picked 37 oranges and Sara picked 10 oranges . Alyssa picked 30 pears . How many oranges were picked in total ?
+
+
+Sam had 49 pennies and 24 nickels in his bank . His dad gave him 39 nickels and 31 quarters . How many nickels does he have now ?
+39
+
+There are 39 dogwood trees currently in the park . Park workers will plant 41 dogwood trees today and 20 dogwood trees tomorrow . How many dogwood trees will the park have when the workers are finished ?
+80
+
+Sandy has 10 books , Benny has 24 books , and Tim has 33 books . How many books do they have together ?
+43
+
+Jason picked 46 pears , Keith picked 47 pears , and Mike picked 12 pears from the pear tree . How many pears were picked in total ?
+
+
+Keith grew 29 cantelopes , Fred grew 16 cantelopes , and Jason grew 20 cantelopes . How many cantelopes did they grow in total ?
+49
+
+Alyssa has 37 blue balloons , Sandy has 28 blue balloons , and Sally has 39 blue balloons . How many blue balloons do they have in all ?
+76
+
+Jason went to 11 football games this month . He went to 17 games last month , and plans to go to 16 games next month . How many games will he attend in all ?
+
+
+There are 43 pencils in the drawer and 19 pencils on the desk . Dan placed 16 pencils on the desk . How many pencils are now there in total ?
+19
+
+Dan found 56 seashells on the beach , he gave Jessica some of his seashells . He has 22 seashell . How many seashells did he give to Jessica ?
+
+
+Benny received 67 dollars for his birthday . He went to a sporting goods store and bought a baseball glove , baseball , and bat . He had 33 dollars over , how much did he spent on the baseball gear ?
+67
+
+There were 3 roses in the vase . Alyssa cut some roses from her flower garden . There are now 14 roses in the vase . How many roses did she cut ?
+'NoneType' object is not subscriptable
+
+Last week Tom had 74 dollars . He washed cars over the weekend and now has 86 dollars . How much money did he make washing cars ?
+
+
+There were 73 bales of hay in the barn . Jason stacked bales in the barn today . There are now 96 bales of hay in the barn . How many bales did he store in the barn ?
+
+
+There were a total of 7 football games this year . Melanie missed 4 of the games . How many football games did Melanie go to in all ?
+
+
+Tom found 7 seashells but 4 were broken . How many unbroken seashells did Tom find ?
+7
+
+Sally picked 7 lemons and Mary picked 9 lemons from the lemon tree . How many lemons were picked in total ?
+
+
+Benny 's high school played 39 baseball games this year . He attended 14 games . How many baseball games did Benny miss ?
+53
+
+Sam found 35 seashells on the beach , he gave Joan 18 of the seashells . How many seashells does he now have ?
+
+
+Mike has 87 baseball cards . Sam bought 13 of Mike 's baseball cards . How many baseball cards does Mike have now ?
+87
+
+Dan has 64 violet marbles , he gave Mary 14 of the marbles . How many violet marbles does he now have ?
+
+
+Alyssa picked 42 pears and Nancy picked 17 pears from the pear tree . How many pears were picked in all ?
+
+
+Sam had 98 pennies in his bank . He spent 93 of his pennies . How many pennies does he have now ?
+$0-93
+
+Joan found 79 seashells on the beach , she gave Mike 63 of the seashells . How many seashells does she now have ?
+
+
+Melanie 's high school played 64 soccer games this year . She attended 32 games . How many soccer games did Melanie miss ?
+96
+
+Mary picked 122 oranges and Jason picked 105 oranges from the orange tree . How many oranges were picked in total ?
+
+
+Sally had 760 quarters in her bank . She spent 418 of her quarters . How many quarters does she have now ?
+418
+
+Fred 's high school played 616 baseball games this year . He attended 147 games . How many baseball games did Fred miss ?
+763
+
+Jason has 676 Pokemon cards . Alyssa bought 224 of Jason 's Pokemon cards . How many Pokemon cards does Jason have now ?
+676
+
+Fred has 709 green balloons , he gave Sandy 221 of the balloons . How many green balloons does he now have ?
+
+
+Jason has 3 Pokemon cards . Benny bought 2 of Jason 's Pokemon cards . How many Pokemon cards does Jason have now ?
+3
+
+Mike has 8 orange marbles , he gave Sam 4 of the marbles . How many orange marbles does he now have ?
+
+
+There are 2 orchid bushes currently in the park . Park workers will plant 4 orchid bushes today . How many orchid bushes will the park have when the workers are finished ?
+2
+
+Sara picked 6 pears and Tim picked 5 pears from the pear tree . How many pears were picked in total ?
+
+
+Sam grew 4 watermelons , but the rabbits ate 3 watermelons . How many watermelons does Sam have ?
+4
+
+Jason had Pokemon cards . He gave 9 to his friends . He now has 4 Pokemon cards . How many Pokemon cards did he have to start with ?
+
+
+Mary has 9 yellow marbles Joan has 3 yellow marbles . How many yellow marbles do they have in all ?
+
+
+Tom found 5 seashells on the beach . he gave Jessica 2 of the seashells . How many seashells does he now have ?
+5
+
+Fred has 5 baseball cards . Melanie bought 3 of Fred 's baseball cards . How many baseball cards does Fred have now ?
+5
+
+Mary had 8 potatoes in the garden . The rabbits ate 3 of the potatoes . How many potatoes does Mary now have ?
+8
+
+There were a total of 6 soccer games this year . Jessica missed 4 of the games . How many soccer games did Jessica go to in all ?
+
+
+Jessica had 8 quarters in her bank . Her sister borrowed 3 of her quarters . How many quarters does Jessica have now ?
+3
+
+A restaurant made 9 hamburgers to serve during lunch . Only 3 were actually served . How many hamburgers were over from lunch ?
+9
+
+There are 7 crayons in the drawer . Mary took 3 crayons out of the drawer . How many crayons are there now ?
+
+
+Dan picked 9 limes and gave Sara 4 of the limes . How many limes does Dan have now ?
+9
+
+Dan found 7 seashells but 3 were broken . How many unbroken seashells did Dan find ?
+7
+
+Alyssa 's high school played 31 hockey games this year . She attended 13 games . How many hockey games did Alyssa miss ?
+44
+
+Tom has 30 violet balloons , he gave Fred 16 of the balloons . How many violet balloons does he now have ?
+
+
+Fred has 40 baseball cards . Keith bought 22 of Fred 's baseball cards . How many baseball cards does Fred have now ?
+40
+
+Fred found 47 seashells on the beach , he gave Jessica 25 of the seashells . How many seashells does he now have ?
+
+
+Sara grew 43 pumpkins , but the rabbits ate 23 pumpkins . How many pumpkins does Sara have ?
+43
+
+Joan decided to sell all of her old books . She gathered up 33 books to sell . She sold 26 books in a yard sale . How many books does Joan now have ?
+26
+
+Joan purchased a basketball game for $ 5.20 , and a racing game for $ 4.23 . How much did Joan spend on video games ?
+'NoneType' object is not subscriptable
+
+Mike joined his school 's band . He bought a trumpet for $ 145.16 , and a song book which was $ 5.84 . How much did Mike spend at the music store ?
+'NoneType' object is not subscriptable
+
+Alyssa bought some toys . She bought a football for $ 5.71 , and spent $ 6.59 on marbles . In total , how much did Alyssa spend on toys ?
+'NoneType' object is not subscriptable
+
+Jessica spent $ 10.22 on a cat toy , and a cage cost her $ 11.73 . What was the total cost of Jessica 's purchases ?
+'NoneType' object is not subscriptable
+
+Sara got fast food for lunch . Sara spent $ 5.36 on a hotdog and $ 5.10 on a salad . What was the total of the lunch bill ?
+'NoneType' object is not subscriptable
+
+Jason went to the mall on Saturday to buy clothes . He spent $ 14.28 on shorts and $ 4.74 on a jacket . In total , how much money did Jason spend on clothing ?
+'NoneType' object is not subscriptable
+
+Alyssa loves eating fruits . Alyssa paid $ 12.08 for grapes , and $ 9.85 for cherries . In total , how much money did Alyssa spend ?
+'NoneType' object is not subscriptable
+
+Mary loves eating fruits . Mary paid $ 11.08 for berries , $ 14.33 for apples , and $ 9.31 for peaches . In total , how much money did she spend ?
+
+
+Sandy went to the mall to buy clothes . She spent $ 13.99 on shorts , $ 12.14 on a shirt , and $ 7.43 on a jacket . How much money did Sandy spend on clothes ?
+
+
+Jason joined his school 's band . He bought a flute for $ 142.46 , a music tool for $ 8.89 , and a song book for $ 7 . How much did Jason spend at the music store ?
+'NoneType' object is not subscriptable
+
+Tom purchased a football game for $ 14.02 , a strategy game for $ 9.46 , and a Batman game for $ 12.04 . How much did Tom spend on video games ?
+'NoneType' object is not subscriptable
+
+Mike bought some toys . He bought marbles for $ 9.05 , a football for $ 4.95 , and spent $ 6.52 on a baseball . In total , how much did Mike spend on toys ?
+'NoneType' object is not subscriptable

@@ -1,0 +1,5 @@
+Correct : 66
+Wrong : 75
+Total : 141
+
+Accuracy : 46.81 %
