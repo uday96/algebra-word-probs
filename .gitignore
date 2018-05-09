@@ -2,16 +2,12 @@
 
 *.pyc
 
-test.py
-
-doubts.txt
-
 __pycache__/
 
 neuralcoref/
 word-probs
-debug/
-report/
-stanford-corenlp-full-2018-02-27/
+
+
+code/stanford-corenlp-full-2018-02-27/
 
 stanford-corenlp-full-2018-02-27.zip
